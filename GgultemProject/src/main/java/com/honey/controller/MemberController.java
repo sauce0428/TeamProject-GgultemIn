@@ -42,7 +42,6 @@ public class MemberController {
 	
 	@GetMapping("/list")
 	public PageResponseDTO<MemberDTO> list(PageRequestDTO pageRequestDTO) {
-		log.info(pageRequestDTO);
 		return service.list(pageRequestDTO);
 	}
 	
