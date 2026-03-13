@@ -12,6 +12,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -36,13 +38,13 @@ public class ChatRoom extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CHATROOM_SEQ_GEN")
 	private Long roomId;
 	
-	//@ManyToOne
-	//@JoinColumn(name = "ITEMBOARD_ID") // 실제 DB 테이블의 FK 컬럼명을 지정
-	//private ItemBoard itemboard;
-	
+	@ManyToOne
+	@JoinColumn(name = "ITEMBOARD_ID") // 실제 DB 테이블의 FK 컬럼명을 지정
+	private ItemBoard itemboard;
+	private String roomName;
 	private String buyerId;
 	private String sellerId;
-	private Integer enabled;
+	private Integer enabled; // 1:활성화, 0:삭제
 	
 	@ElementCollection(fetch = FetchType.LAZY)
 	@Column(name = "chat_messages")
@@ -51,6 +53,10 @@ public class ChatRoom extends BaseTimeEntity {
 	
 	public void changeEnabled(int enabled) {
 		this.enabled = enabled;
+	}
+	
+	public void changeRoomName(String roomName) {
+		this.roomName = roomName;
 	}
 	
 	
