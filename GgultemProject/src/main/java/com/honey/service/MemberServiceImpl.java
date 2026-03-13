@@ -136,16 +136,10 @@ public class MemberServiceImpl implements MemberService {
 	public void updateToThumbnail(MemberDTO memberDTO) {
 	    Member member = memberRepository.findById(memberDTO.getNo()).orElseThrow();
 
-	    List<String> oldFileNames = member.getThumbnailList().stream()
-	            .map(thumbnail -> thumbnail.getFileName())
-	            .collect(Collectors.toList());
-	    
-	    if (oldFileNames != null && !oldFileNames.isEmpty()) {
-	        fileUtil.deleteFiles(oldFileNames);
-	    }
-
 	    member.clearList();
-
+	    
+	    log.info("저장된 이름 = "+memberDTO.getUploadFileNames().toString());
+	    
 	    List<String> newFileNames = memberDTO.getUploadFileNames();
 	    if (newFileNames != null && !newFileNames.isEmpty()) {
 	        newFileNames.forEach(fileName -> {
