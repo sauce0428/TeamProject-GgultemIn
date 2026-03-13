@@ -44,7 +44,7 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 		List<String> fileNameList = itemBoard.getItemList().stream().map(itemList -> itemList.getFileName())
 				.collect(Collectors.toList());
 
-		if (fileNameList != null && fileNameList.isEmpty()) {
+		if (fileNameList != null && !fileNameList.isEmpty()) {
 			itemBoardDTO.setUploadFileNames(fileNameList);
 		} else {
 			itemBoardDTO.setUploadFileNames(List.of("default.jpg"));
@@ -55,7 +55,22 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 
 	@Override
 	public Long register(ItemBoardDTO itemBoardDTO) {
+		// 1. 매핑 전 로그 확인
+	    log.info("---------------------------------------");
+	    log.info("서비스 시작 - DTO 파일명 리스트: " + itemBoardDTO.getUploadFileNames());
 		ItemBoard itemBoard = modelMapper.map(itemBoardDTO, ItemBoard.class);
+		// 파일명 리스트 가져오기
+		log.info("매핑 후 엔티티 상태 - itemList null 여부: " + (itemBoard.getItemList() == null));
+		List<String> uploadFileNames = itemBoardDTO.getUploadFileNames();
+		if (itemBoardDTO.getUploadFileNames() != null && !itemBoardDTO.getUploadFileNames().isEmpty()) {
+			log.info("파일명 발견! 등록을 진행합니다: " + uploadFileNames);
+			itemBoardDTO.getUploadFileNames().forEach(fileName -> {
+				itemBoard.addImageString(fileName);
+			});
+		} else {
+			log.error("파일명 리스트가 비어있습니다. 그래서 default.jpg가 들어갑니다.");
+			itemBoard.addImageString("default.jpg");
+		}
 		ItemBoard savedItemBoard = itemBoardRepository.save(itemBoard);
 
 		return savedItemBoard.getId();
@@ -87,7 +102,7 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 		itemBoard.changeCategory(itemBoardDTO.getCategory());
 		itemBoard.changeStatus(itemBoardDTO.getStatus());
 		itemBoard.changeLocation(itemBoardDTO.getLocation());
-		
+
 		itemBoardRepository.save(itemBoard);
 	}
 
@@ -95,9 +110,8 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 	public void remove(Long id) {
 		Optional<ItemBoard> result = itemBoardRepository.findById(id);
 		ItemBoard itemBoard = result.orElseThrow();
-		
+
 		itemBoardRepository.save(itemBoard);
 	}
-
 
 }

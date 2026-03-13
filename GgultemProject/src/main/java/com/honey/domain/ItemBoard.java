@@ -24,7 +24,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "itemBoard")
 @Getter
-@ToString()
+@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,75 +41,76 @@ public class ItemBoard extends BaseTimeEntity {
 
 	@Column(nullable = false)
 	private String title;
-	
+
 	@Column(nullable = false)
 	private String writer;
-	
+
 	@Column(nullable = false)
 	private int price;
-	
+
 	@Column(nullable = false)
 	private String content;
-	
+
 	@Column(nullable = false)
 	private String category;
-	
+
 	private String status;
-	
+
 	@Column(nullable = false)
 	private String location;
+	
 	private String itemUrl;
 	private String pictureUrl;
+	private int viewCount;
 
 	@Builder.Default
 	@ElementCollection
 	private List<ItemBoardImage> itemList = new ArrayList<>();
-	
+
 	public void changeTitle(String title) {
 		this.title = title;
 	}
-	
+
 	public void changeWriter(String writer) {
 		this.writer = writer;
 	}
-	
-	
+
 	public void changePrice(int price) {
 		this.price = price;
 	}
-	
-	
+
 	public void changeContent(String content) {
 		this.content = content;
 	}
-	
-	
+
 	public void changeCategory(String category) {
 		this.category = category;
 	}
-	
-	
+
 	public void changeStatus(String status) {
 		this.status = status;
 	}
-	
-	
+
 	public void changeLocation(String location) {
 		this.location = location;
 	}
-	
-	 public void addImage(ItemBoardImage image) {
-			image.setOrd(this.itemList.size());
-			itemList.add(image);
-		}
 
-		public void addImageString(String fileName) {
-			ItemBoardImage image = ItemBoardImage.builder().fileName(fileName).build();
-			addImage(image);
+	public void addImage(ItemBoardImage image) {
+		// ModelMapper 등으로 인해 itemList가 null이 된 경우를 대비해 직접 초기화
+		if (this.itemList == null) {
+			this.itemList = new ArrayList<>();
 		}
-	
+		image.setOrd(this.itemList.size());
+		itemList.add(image);
+	}
+
+	public void addImageString(String fileName) {
+		ItemBoardImage image = ItemBoardImage.builder().fileName(fileName).build();
+		addImage(image);
+	}
+
 	public void clearList() {
 		this.itemList.clear();
 	}
-	
+
 }
