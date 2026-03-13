@@ -1,10 +1,13 @@
 package com.honey.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.honey.common.BaseTimeEntity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,7 +45,25 @@ public class Board extends BaseTimeEntity {
 	private String content;
 	private int viewCount;
 	private Integer enabled; // 1: 활성화 / 0:삭제
-	
+
+	@ElementCollection
+	@Builder.Default
+	private List<BoardImage> boardImage = new ArrayList<>();
+
+	public void addImage(BoardImage board) {
+		board.setOrd(this.boardImage.size());
+		boardImage.add(board);
+	}
+
+	public void addImageString(String fileName) {
+		BoardImage boardImage = BoardImage.builder().fileName(fileName).build();
+		addImage(boardImage);
+	}
+
+	public void clearList() {
+		this.boardImage.clear();
+	}
+
 	private LocalDateTime dtdDate;
 
 	public void changeTitle(String title) {
@@ -61,7 +82,7 @@ public class Board extends BaseTimeEntity {
 		this.member = member;
 
 	}
-	
+
 	public void changeEnabled(int enabled) {
 		switch (enabled) {
 		case 1:
@@ -72,7 +93,7 @@ public class Board extends BaseTimeEntity {
 			this.dtdDate = LocalDateTime.now();
 			break;
 		}
-		
+
 	}
 
 }

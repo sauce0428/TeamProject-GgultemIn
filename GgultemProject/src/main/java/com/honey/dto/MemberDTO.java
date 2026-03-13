@@ -28,6 +28,7 @@ public class MemberDTO {
 	private String phone;
 	private String email;
 	private Integer enabled;
+	
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime regDate;
 	

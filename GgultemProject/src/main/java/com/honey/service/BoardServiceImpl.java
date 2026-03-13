@@ -1,7 +1,6 @@
 package com.honey.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -17,6 +16,7 @@ import com.honey.dto.BoardDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
 import com.honey.repository.BoardRepository;
+import com.honey.util.CustomFileUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,79 +29,162 @@ import lombok.extern.slf4j.Slf4j;
 public class BoardServiceImpl implements BoardService {
 
 	private final ModelMapper modelMapper;
-	private final BoardRepository boardRepository;
-	
-	
-	
-	@Override
-	public Integer register(BoardDTO boardDTO) {
+    private final CustomFileUtil fileUtil;
+    private final BoardRepository boardRepository;
 
-		Member member = Member.builder().no(boardDTO.getMemberNo()).build();
+    // 게시글 등록
+    @Override
+    public Integer register(BoardDTO boardDTO) {
 
-		Board board = Board.builder().title(boardDTO.getTitle()).writer(boardDTO.getWriter())
-				.content(boardDTO.getContent()).viewCount(0).enabled(1).member(member).build();
+        Member member = Member.builder()
+                .no(boardDTO.getMemberNo())
+                .build();
 
-		Board savedBoard = boardRepository.save(board);
+        Board board = Board.builder()
+                .title(boardDTO.getTitle())
+                .writer(boardDTO.getWriter())
+                .content(boardDTO.getContent())
+                .viewCount(0)
+                .enabled(1)
+                .member(member)
+                .build();
 
-		return savedBoard.getBoardNo();
-	}
-	
+        // ⭐ 파일 저장
+        List<String> uploadFileNames = fileUtil.saveFiles(boardDTO.getFiles());
 
-	@Override
-	public BoardDTO read(Integer boardNo) {
+        if(uploadFileNames != null){
+            uploadFileNames.forEach(fileName -> {
+                board.addImageString(fileName);
+            });
+        }
 
-		Optional<Board> result = boardRepository.findById(boardNo);
-		Board board = result.orElseThrow();
+        Board savedBoard = boardRepository.save(board);
 
-		// 조회수 증가
-		board.changeViewCount(board.getViewCount() + 1);
+        return savedBoard.getBoardNo();
+    }
 
-		BoardDTO boardDTO = modelMapper.map(board, BoardDTO.class);
+    // 게시글 조회
+    @Override
+    public BoardDTO get(Integer boardNo) {
 
-		return boardDTO;
-	}
+        Board board = boardRepository.findById(boardNo).orElseThrow();
 
-	
+        board.changeViewCount(board.getViewCount() + 1);
 
-	@Override
-	public void modify(BoardDTO boardDTO) {
+        BoardDTO boardDTO = modelMapper.map(board, BoardDTO.class);
 
-		Optional<Board> result = boardRepository.findById(boardDTO.getBoardNo());
-		Board board = result.orElseThrow();
+        // ⭐ 이미지 파일 이름 DTO에 넣기
+        List<String> fileNames = board.getBoardImage()
+                .stream()
+                .map(img -> img.getFileName())
+                .toList();
 
-		board.changeTitle(boardDTO.getTitle());
-		board.changeWriter(boardDTO.getWriter());
+        boardDTO.setUploadFileNames(fileNames);
 
-		boardRepository.save(board);
-	}
+        return boardDTO;
+    }
 
-	@Override
-	public void remove(Integer boardNo) {
-		Optional<Board> result = boardRepository.findById(boardNo);
-		Board board = result.orElseThrow();
-		
-		board.changeEnabled(0);
-		
-		boardRepository.save(board);
-		
-	}
+    // 게시글 수정
+    @Override
+    public void modify(BoardDTO boardDTO) {
 
-	@Override
-	public PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO) {
+        Board board = boardRepository.findById(boardDTO.getBoardNo()).orElseThrow();
 
-		Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, // 1페이지 = 0
-				pageRequestDTO.getSize(), Sort.by("boardNo").descending());
+        // 제목 수정
+        board.changeTitle(boardDTO.getTitle());
+        board.changeWriter(boardDTO.getWriter());
 
-		Page<Board> result = boardRepository.findAllByEnabled(pageable);
+        // 기존 이미지 목록
+        List<String> oldFileNames = board.getBoardImage()
+                .stream()
+                .map(img -> img.getFileName())
+                .toList();
 
-		List<BoardDTO> dtoList = result.getContent().stream().map(board -> modelMapper.map(board, BoardDTO.class))
-				.collect(Collectors.toList());
+        // 새로 업로드된 파일
+        List<String> newUploadFileNames = fileUtil.saveFiles(boardDTO.getFiles());
 
-		long totalCount = result.getTotalElements();
+        // 화면에서 유지되는 파일
+        List<String> uploadedFileNames = boardDTO.getUploadFileNames();
 
-		PageResponseDTO<BoardDTO> responseDTO = PageResponseDTO.<BoardDTO>withAll().dtoList(dtoList)
-				.pageRequestDTO(pageRequestDTO).totalCount(totalCount).build();
+        if(newUploadFileNames != null){
+            uploadedFileNames.addAll(newUploadFileNames);
+        }
 
-		return responseDTO;
-	}
+        // DB 이미지 초기화
+        board.clearList();
+
+        if(uploadedFileNames != null){
+            uploadedFileNames.forEach(fileName -> {
+                board.addImageString(fileName);
+            });
+        }
+
+        boardRepository.save(board);
+
+        // 삭제할 파일 찾기
+        if(oldFileNames != null){
+            List<String> removeFiles = oldFileNames.stream()
+                    .filter(fileName -> uploadedFileNames.indexOf(fileName) == -1)
+                    .toList();
+
+            fileUtil.deleteFiles(removeFiles);
+        }
+    }
+
+    // 게시글 삭제
+    @Override
+    public void remove(Integer boardNo) {
+
+        Board board = boardRepository.findById(boardNo).orElseThrow();
+
+        // 파일 삭제
+        List<String> fileNames = board.getBoardImage()
+                .stream()
+                .map(img -> img.getFileName())
+                .toList();
+
+        if(!fileNames.isEmpty()){
+            fileUtil.deleteFiles(fileNames);
+        }
+        
+        board.changeEnabled(0);
+
+        // 게시글 삭제
+        boardRepository.save(board);
+    }
+
+    // 게시글 목록
+    @Override
+    public PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO) {
+
+        Pageable pageable = PageRequest.of(
+                pageRequestDTO.getPage() - 1,
+                pageRequestDTO.getSize(),
+                Sort.by("boardNo").descending()
+        );
+
+        Page<Board> result = boardRepository.findAllByEnabled(pageable);
+
+        List<BoardDTO> dtoList = result.getContent().stream()
+                .map(board -> {
+
+                    BoardDTO dto = modelMapper.map(board, BoardDTO.class);
+
+                    List<String> fileNames = board.getBoardImage()
+                            .stream()
+                            .map(img -> img.getFileName())
+                            .toList();
+
+                    dto.setUploadFileNames(fileNames);
+
+                    return dto;
+
+                }).collect(Collectors.toList());
+
+        return PageResponseDTO.<BoardDTO>withAll()
+                .dtoList(dtoList)
+                .pageRequestDTO(pageRequestDTO)
+                .totalCount(result.getTotalElements())
+                .build();
+    }
 }
