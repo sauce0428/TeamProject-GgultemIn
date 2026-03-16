@@ -35,10 +35,13 @@ public class BoardReplyServiceImpl implements BoardReplyService {
                 .no(dto.getMemberNo().longValue())
                 .build();
         
+        BoardReply parentReply = boardReplyRepository.findById(dto.getParentReplyNo()).orElseThrow();
+        
         BoardReply reply = BoardReply.builder()
                 .board(board)
                 .member(member)
                 .content(dto.getContent())
+                .parent(parentReply)
                 .enabled(1)
                 .build();
 
@@ -50,7 +53,7 @@ public class BoardReplyServiceImpl implements BoardReplyService {
     // 댓글 목록 조회
     @Override
     @Transactional(readOnly = true)
-    public List<BoardReplyDTO> getList(Integer boardNo) {
+    public List<BoardReplyDTO> list(Integer boardNo) {
 
         List<BoardReply> list =
                 boardReplyRepository.findByBoardBoardNoAndEnabled(boardNo, 1);

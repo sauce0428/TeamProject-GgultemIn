@@ -60,7 +60,7 @@ public class BoardReply extends BaseTimeEntity {
 	@Builder.Default
 	private List<BoardReply> childList = new ArrayList<>();
 
-	// 삭제 여부
+	// 삭제 여부 / 데이터는 남기는 역할
 	private Integer enabled; // 1: 활성 / 0: 삭제
 
 	private LocalDateTime dtdDate;

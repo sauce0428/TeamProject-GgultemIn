@@ -11,12 +11,13 @@ public interface BoardReplyService {
     Long register(BoardReplyDTO boardReplyDTO);
 
     // 댓글 목록
-    List<BoardReplyDTO> getList(Integer boardNo);
+    List<BoardReplyDTO> list(Integer boardNo);
+
+	// 댓글 수정
+	void modify(BoardReplyDTO boardReplyDTO);
 
     // 댓글 삭제
     void remove(Long no);
 
-    // 댓글 수정
-    void modify(BoardReplyDTO boardReplyDTO);
 
 }

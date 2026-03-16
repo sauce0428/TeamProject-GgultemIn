@@ -14,18 +14,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BoardReplyController {
 
-	private final BoardReplyService boardReplyService;
+	private final BoardReplyService service;
 
 	// 댓글 목록 조회
 	@GetMapping("/list/{boardNo}")
-	public List<BoardReplyDTO> getList(@PathVariable Integer boardNo) {
-		return boardReplyService.getList(boardNo);
+	public List<BoardReplyDTO> list(@PathVariable Integer boardNo) {
+		return service.list(boardNo);
 	}
 
 	// 댓글 등록
 	@PostMapping("/")
 	public Long register(@RequestBody BoardReplyDTO dto) {
-		return boardReplyService.register(dto);
+		return service.register(dto);
 	}
 
 	// 댓글 수정
@@ -34,16 +34,16 @@ public class BoardReplyController {
 
 		dto.setReplyNo(replyNo);
 
-		boardReplyService.modify(dto);
+		service.modify(dto);
 
 		return "SUCCESS";
 	}
 
-	// 댓글 삭제 (논리 삭제)
-	@DeleteMapping("/{replyNo}")
+	// 댓글 삭제 
+	@GetMapping("/{replyNo}")
 	public String remove(@PathVariable Long replyNo) {
 
-		boardReplyService.remove(replyNo);
+		service.remove(replyNo);
 
 		return "SUCCESS";
 	}
