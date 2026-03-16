@@ -65,15 +65,12 @@ public class BusinessMember extends BaseTimeEntity {
     
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "business_member_auth", joinColumns = @JoinColumn(name = "business_member_no"))
-    @Column(name = "role")
+    @Column(name = "auth") // 권한 내용이 들어갈 컬럼명
     @Builder.Default
     private Set<String> authSet = new HashSet<>();
     
     public void addRole(String role) {
-    	if(this.authSet == null) {
-    		this.authSet = new HashSet<>();
-    	}
-        this.authSet.add(role);
+        authSet.add(role);
     }
 	
     public void changeStatus(int newStatus) {
