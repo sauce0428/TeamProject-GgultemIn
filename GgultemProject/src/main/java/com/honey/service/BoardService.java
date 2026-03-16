@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.honey.dto.BoardDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 
 @Transactional
 public interface BoardService {
@@ -22,6 +23,6 @@ public interface BoardService {
 	void remove(Integer boardNo);
 
 	// 게시글 목록
-	PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO);
+	PageResponseDTO<BoardDTO> list(SearchDTO searchDTO);
 	
 }

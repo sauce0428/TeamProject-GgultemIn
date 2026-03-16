@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.honey.dto.BoardDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.service.BoardService;
 
 import lombok.RequiredArgsConstructor;
@@ -44,9 +44,9 @@ public class BoardController {
 
 	// 게시글 목록 (페이징)
 	@GetMapping("/list")
-	public PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO) {
-		log.info(pageRequestDTO);
-		return service.list(pageRequestDTO);
+	public PageResponseDTO<BoardDTO> list(SearchDTO searchDTO) {
+		log.info(searchDTO);
+		return service.list(searchDTO);
 	}
 
 	// 게시글 수정

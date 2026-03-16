@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.honey.dto.BusinessMemberDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.service.BusinessMemberService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,8 +34,8 @@ public class BusinessMemberController {
 	}
 	
 	@GetMapping("/list")
-	public PageResponseDTO<BusinessMemberDTO> list(PageRequestDTO pageRequestDTO) {
-		return service.list(pageRequestDTO);
+	public PageResponseDTO<BusinessMemberDTO> list(SearchDTO searchDTO) {
+		return service.list(searchDTO);
 	}
 	
 	@PostMapping("/register")

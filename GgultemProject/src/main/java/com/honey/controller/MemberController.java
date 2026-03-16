@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.honey.dto.MemberDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.service.MemberService;
-import com.honey.util.CustomFileUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -41,8 +40,8 @@ public class MemberController {
 	}
 	
 	@GetMapping("/list")
-	public PageResponseDTO<MemberDTO> list(PageRequestDTO pageRequestDTO) {
-		return service.list(pageRequestDTO);
+	public PageResponseDTO<MemberDTO> list(SearchDTO searchDTO) {
+		return service.list(searchDTO);
 	}
 	
 	@PutMapping("/{no}")

@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 import com.honey.domain.Member;
 import com.honey.dto.MemberDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.repository.MemberRepository;
 import com.honey.util.CustomFileUtil;
 
@@ -30,6 +30,7 @@ public class MemberServiceImpl implements MemberService {
 
 	private final ModelMapper modelMapper;
 	private final MemberRepository memberRepository;
+	private final SearchLogService searchLogSearvice;
 	private final CustomFileUtil fileUtil;
 
 	@Override
@@ -105,10 +106,20 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public PageResponseDTO<MemberDTO> list(PageRequestDTO pageRequestDTO) {
-		Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
-				pageRequestDTO.getSize(), Sort.by("no").descending());
-		Page<Member> result = memberRepository.findAll(pageable);
+	public PageResponseDTO<MemberDTO> list(SearchDTO searchDTO) {
+		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
+				searchDTO.getSize(), Sort.by("no").descending());
+		
+		Page<Member> result = null;
+		if(searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
+			//searchLogSearvice.logSearch(searchDTO);
+			result = memberRepository.searchByCondition(
+					searchDTO.getSearchType(),
+					searchDTO.getKeyword(),
+					pageable);
+		} else {
+			result = memberRepository.findAll(pageable);
+		}
 		
 		List<MemberDTO> dtoList = result.getContent().stream().map(member -> {
 	        MemberDTO dto = modelMapper.map(member, MemberDTO.class);
@@ -129,7 +140,7 @@ public class MemberServiceImpl implements MemberService {
 	long totalCount = result.getTotalElements();
 
 	PageResponseDTO<MemberDTO> responseDTO = PageResponseDTO.<MemberDTO>withAll().dtoList(dtoList)
-			.pageRequestDTO(pageRequestDTO).totalCount(totalCount).build();
+			.pageRequestDTO(searchDTO).totalCount(totalCount).build();
 
 	return responseDTO;
 	}

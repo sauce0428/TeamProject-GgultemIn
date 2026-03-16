@@ -15,6 +15,7 @@ import com.honey.domain.Member;
 import com.honey.dto.BoardDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.repository.BoardRepository;
 import com.honey.util.CustomFileUtil;
 
@@ -155,15 +156,23 @@ public class BoardServiceImpl implements BoardService {
 
     // 게시글 목록
     @Override
-    public PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<BoardDTO> list(SearchDTO searchDTO) {
 
         Pageable pageable = PageRequest.of(
-                pageRequestDTO.getPage() - 1,
-                pageRequestDTO.getSize(),
+        		searchDTO.getPage() - 1,
+        		searchDTO.getSize(),
                 Sort.by("boardNo").descending()
         );
 
-        Page<Board> result = boardRepository.findAllByEnabled(pageable);
+        Page<Board> result = null;
+        if(searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
+        	result = boardRepository.searchByCondition(
+					searchDTO.getSearchType(),
+					searchDTO.getKeyword(),
+					pageable);
+        } else {
+        	result = boardRepository.findAllByEnabled(pageable);
+        }
 
         List<BoardDTO> dtoList = result.getContent().stream()
                 .map(board -> {
@@ -183,7 +192,7 @@ public class BoardServiceImpl implements BoardService {
 
         return PageResponseDTO.<BoardDTO>withAll()
                 .dtoList(dtoList)
-                .pageRequestDTO(pageRequestDTO)
+                .pageRequestDTO(searchDTO)
                 .totalCount(result.getTotalElements())
                 .build();
     }

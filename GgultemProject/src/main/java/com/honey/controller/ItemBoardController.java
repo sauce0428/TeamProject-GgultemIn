@@ -24,7 +24,7 @@ import lombok.extern.log4j.Log4j2;
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/honey/itemBoard")
+@RequestMapping("/itemBoard")
 public class ItemBoardController {
 
 	private final ItemBoardService itemBoardService;

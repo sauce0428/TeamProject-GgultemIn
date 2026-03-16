@@ -16,6 +16,7 @@ import com.honey.domain.BusinessMember;
 import com.honey.dto.BusinessMemberDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.repository.BusinessMemberRepository;
 import com.honey.util.CustomFileUtil;
 
@@ -47,11 +48,19 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 	}
 
 	@Override
-	public PageResponseDTO<BusinessMemberDTO> list(PageRequestDTO pageRequestDTO) {
-		Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
-				pageRequestDTO.getSize(), Sort.by("no").descending());
+	public PageResponseDTO<BusinessMemberDTO> list(SearchDTO searchDTO) {
+		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
+				searchDTO.getSize(), Sort.by("no").descending());
 		
-		Page<BusinessMember> result = bMemberRepository.findAll(pageable);
+		Page<BusinessMember> result = null;
+		if(searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
+			result = bMemberRepository.searchByCondition(
+					searchDTO.getSearchType(),
+					searchDTO.getKeyword(),
+					pageable);
+		} else {
+			result = bMemberRepository.findAll(pageable);
+		}
 		
 		List<BusinessMemberDTO> dtoList = result.getContent().stream().map(businessMember -> {
 			BusinessMemberDTO dto = modelMapper.map(businessMember, BusinessMemberDTO.class);
@@ -61,7 +70,7 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 			long totalCount = result.getTotalElements();
 		
 			PageResponseDTO<BusinessMemberDTO> responseDTO = PageResponseDTO.<BusinessMemberDTO>withAll().dtoList(dtoList)
-					.pageRequestDTO(pageRequestDTO).totalCount(totalCount).build();
+					.pageRequestDTO(searchDTO).totalCount(totalCount).build();
 
 			return responseDTO;
 	}
