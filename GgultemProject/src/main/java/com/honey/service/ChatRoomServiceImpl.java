@@ -12,9 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.honey.domain.ChatRoom;
-import com.honey.domain.Member;
 import com.honey.dto.ChatRoomDTO;
-import com.honey.dto.MemberDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
 import com.honey.repository.ChatRoomRepository;
