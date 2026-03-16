@@ -6,10 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.honey.domain.Cart;
-import com.honey.domain.ItemBoard;
 
 public interface CartRepository extends JpaRepository<Cart, Long>{
 
-	@Query("select c from Cart c where enabled = 0")
-	Page<ItemBoard> findAllList(Pageable pageable);
+	@Query("select c from Cart c") // 전체 조회를 원하신다면 이렇게!
+	Page<Cart> findAllList(Pageable pageable);
 }

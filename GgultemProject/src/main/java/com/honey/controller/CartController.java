@@ -3,6 +3,7 @@ package com.honey.controller;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,8 +25,6 @@ import lombok.extern.log4j.Log4j2;
 @RequestMapping("/cart")
 public class CartController {
 
-	private final MemberService memberService;
-	private final ItemBoardService itemBoardService;
 	private final CartService cartService;
 	
 	@GetMapping("/{id}")
@@ -42,5 +41,11 @@ public class CartController {
 	@GetMapping("/list")
 	public PageResponseDTO<CartDTO> list(PageRequestDTO pageRequestDTO){
 		return cartService.list(pageRequestDTO);
+	}
+	
+	@GetMapping("/delete/{id}")
+	public Map<String, String> remove(@PathVariable(name="id") Long id){
+		cartService.remove(id);
+		return Map.of("RESULT","SUCCESS");
 	}
 }

@@ -37,4 +37,10 @@ public class Cart {
 	@ManyToOne
 	@JoinColumn(name = "MEMBER_NO") // 실제 DB 테이블의 FK 컬럼명을 지정
 	private Member member;
+	
+	private Integer enabled;
+	
+	public void changeEnabled(int enabled) {
+		this.enabled = enabled;
+	}
 }

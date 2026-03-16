@@ -21,6 +21,7 @@ public class CartDTO {
 	private Long itemId;
 	private ItemBoard itemBoard;
 	private Member member;
+	private Integer enabled;
 	
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime regDate;

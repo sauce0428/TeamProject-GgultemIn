@@ -1,5 +1,10 @@
 package com.honey.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -57,6 +62,7 @@ public class CartServiceImpl implements CartService {
 		Cart cart = Cart.builder()
 				.itemBoard(itemBoard)
 				.member(member)
+				.enabled(0)
 				.build();
 		Cart result = cartRepository.save(cart);
 		return result.getId();
@@ -66,7 +72,22 @@ public class CartServiceImpl implements CartService {
 	public PageResponseDTO<CartDTO> list(PageRequestDTO pageRequestDTO) {
 		Pageable pageable = PageRequest.of(pageRequestDTO.getPage() -1, pageRequestDTO.getSize(),
 				Sort.by("id").descending());
-		return null;
+		Page<Cart> result = cartRepository.findAll(pageable);
+		List<CartDTO> dtoList = result.getContent().stream()
+				.map(Cart -> modelMapper.map(Cart, CartDTO.class)).collect(Collectors.toList());
+		long totalCount = result.getTotalElements();
+		PageResponseDTO<CartDTO> responseDTO = PageResponseDTO.<CartDTO>withAll().dtoList(dtoList)
+				.pageRequestDTO(pageRequestDTO).totalCount(totalCount).build();
+		
+		return responseDTO;
+	}
+
+	@Override
+	public void remove(Long id) {
+		Optional<Cart> result = cartRepository.findById(id);
+		Cart cart = result.orElseThrow();
+		cart.changeEnabled(1);
+		cartRepository.save(cart);
 	}
 
 
