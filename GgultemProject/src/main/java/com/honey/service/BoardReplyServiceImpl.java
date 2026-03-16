@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.honey.domain.Board;
 import com.honey.domain.BoardReply;
+import com.honey.domain.Member;
 import com.honey.dto.BoardReplyDTO;
 import com.honey.repository.BoardReplyRepository;
 import com.honey.repository.BoardRepository;
@@ -30,15 +31,20 @@ public class BoardReplyServiceImpl implements BoardReplyService {
 
         Board board = boardRepository.findById(dto.getBoardNo()).orElseThrow();
 
+        Member member = Member.builder()
+                .no(dto.getMemberNo().longValue())
+                .build();
+        
         BoardReply reply = BoardReply.builder()
                 .board(board)
+                .member(member)
                 .content(dto.getContent())
                 .enabled(1)
                 .build();
 
         boardReplyRepository.save(reply);
 
-        return reply.getNo();
+        return reply.getReplyNo();
     }
 
     // 댓글 목록 조회
@@ -53,16 +59,19 @@ public class BoardReplyServiceImpl implements BoardReplyService {
                 .map(reply -> {
 
                     BoardReplyDTO dto = BoardReplyDTO.builder()
-                            .RepltNo(reply.getRepltNo())
+                            .replyNo(reply.getReplyNo())
                             .boardNo(reply.getBoard().getBoardNo())
-                            .No(reply.getMember().getNo())
+                            .memberNo(reply.getMember().getNo().intValue())
                             .content(reply.getContent())
-                            .enabled(reply.getEnabled())
+                            .parentReplyNo(
+                                    reply.getParent() != null
+                                            ? reply.getParent().getReplyNo()
+                                            : null
+                            )
                             .regDate(reply.getRegDate())
                             .build();
 
                     return dto;
-
                 })
                 .collect(Collectors.toList());
     }
@@ -72,17 +81,17 @@ public class BoardReplyServiceImpl implements BoardReplyService {
     public void modify(BoardReplyDTO dto) {
 
         BoardReply reply =
-                boardReplyRepository.findById(dto.getNo()).orElseThrow();
+                boardReplyRepository.findById(dto.getReplyNo()).orElseThrow();
 
         reply.changeContent(dto.getContent());
     }
 
     // 댓글 삭제 (논리 삭제)
     @Override
-    public void remove(Long no) {
+    public void remove(Long replyNo) {
 
         BoardReply reply =
-                boardReplyRepository.findById(no).orElseThrow();
+                boardReplyRepository.findById(replyNo).orElseThrow();
 
         reply.changeEnabled(0);
     }

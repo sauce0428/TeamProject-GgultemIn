@@ -27,57 +27,57 @@ import lombok.ToString;
 @Table(name = "reply")
 @SequenceGenerator(name = "REPLY_SEQ_GEN", sequenceName = "REPLY_SEQ1", allocationSize = 1)
 @Getter
-@ToString(exclude = {"board","member","parent","childList"})
+@ToString(exclude = { "board", "member", "parent", "childList" })
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class BoardReply extends BaseTimeEntity {
 
-    @Id
-    @Column(name = "REPLY_NO")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REPLY_SEQ_GEN")
-    private Long replyNo;
+	@Id
+	@Column(name = "REPLY_NO")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REPLY_SEQ_GEN")
+	private Long replyNo;
 
-    // 게시글
-    @ManyToOne
-    @JoinColumn(name = "BOARD_NO_BOARD")
-    private Board board;
+	// 게시글
+	@ManyToOne
+	@JoinColumn(name = "BOARD_NO_BOARD", nullable = false)
+	private Board board;
 
-    // 작성자
-    @ManyToOne
-    @JoinColumn(name = "NO_MEMBER")
-    private Member member;
+	// 작성자
+	@ManyToOne
+	@JoinColumn(name = "NO_MEMBER", nullable = false)
+	private Member member;
 
-    private String content;
+	private String content;
 
-    // 부모 댓글 (대댓글)
-    @ManyToOne
-    @JoinColumn(name = "PARENT_REPLY_NO")
-    private BoardReply parent;
+	// 부모 댓글 (대댓글)
+	@ManyToOne
+	@JoinColumn(name = "PARENT_REPLY_NO", nullable = true)
+	private BoardReply parent;
 
-    // 대댓글 리스트
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<BoardReply> childList = new ArrayList<>();
+	// 대댓글 리스트
+	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+	@Builder.Default
+	private List<BoardReply> childList = new ArrayList<>();
 
-    // 삭제 여부
-    private Integer enabled;  // 1: 활성 / 0: 삭제
+	// 삭제 여부
+	private Integer enabled; // 1: 활성 / 0: 삭제
 
-    private LocalDateTime dtdDate;
+	private LocalDateTime dtdDate;
 
-    public void changeContent(String content){
-        this.content = content;
-    }
+	public void changeContent(String content) {
+		this.content = content;
+	}
 
-    public void changeEnabled(int enabled){
-        switch(enabled){
-        case 1:
-            this.dtdDate = null;
-            break;
-        case 0:
-            this.enabled = enabled;
-            this.dtdDate = LocalDateTime.now();
-            break;
-        }
-    }
+	public void changeEnabled(int enabled) {
+		switch (enabled) {
+		case 1:
+			this.dtdDate = null;
+			break;
+		case 0:
+			this.enabled = enabled;
+			this.dtdDate = LocalDateTime.now();
+			break;
+		}
+	}
 }

@@ -19,22 +19,20 @@ public class BoardReplyController {
 	// 댓글 목록 조회
 	@GetMapping("/list/{boardNo}")
 	public List<BoardReplyDTO> getList(@PathVariable Integer boardNo) {
-
 		return boardReplyService.getList(boardNo);
 	}
 
 	// 댓글 등록
 	@PostMapping("/")
 	public Long register(@RequestBody BoardReplyDTO dto) {
-
 		return boardReplyService.register(dto);
 	}
 
 	// 댓글 수정
-	@PutMapping("/{no}")
-	public String modify(@PathVariable Long no, @RequestBody BoardReplyDTO dto) {
+	@PutMapping("/{replyNo}")
+	public String modify(@PathVariable Long replyNo, @RequestBody BoardReplyDTO dto) {
 
-		dto.setNo(no);
+		dto.setReplyNo(replyNo);
 
 		boardReplyService.modify(dto);
 
@@ -42,10 +40,10 @@ public class BoardReplyController {
 	}
 
 	// 댓글 삭제 (논리 삭제)
-	@DeleteMapping("/{no}")
-	public String remove(@PathVariable Long no) {
+	@DeleteMapping("/{replyNo}")
+	public String remove(@PathVariable Long replyNo) {
 
-		boardReplyService.remove(no);
+		boardReplyService.remove(replyNo);
 
 		return "SUCCESS";
 	}
