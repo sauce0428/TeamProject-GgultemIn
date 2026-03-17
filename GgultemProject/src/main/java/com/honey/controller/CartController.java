@@ -23,27 +23,27 @@ import lombok.extern.log4j.Log4j2;
 @RequestMapping("/cart")
 public class CartController {
 
-	private final CartService cartService;
-	
-	@GetMapping("/{id}")
-	public CartDTO getCart(Long id) {
-		return cartService.get(id);
-	}
-	
-	@PostMapping("/")
-	public Map<String, Long> register(@RequestBody CartDTO cartDTO){
-		Long id = cartService.register(cartDTO);
-		return Map.of("id", id);
-	}
-	
-	@GetMapping("/list")
-	public PageResponseDTO<CartDTO> list(SearchDTO searchDTO, String email){
-		return cartService.list(searchDTO, email);
-	}
-	
-	@GetMapping("/delete/{id}")
-	public Map<String, String> remove(@PathVariable(name="id") Long id){
-		cartService.remove(id);
-		return Map.of("RESULT","SUCCESS");
-	}
+    private final CartService cartService;
+
+    @GetMapping("/{id}")
+    public CartDTO getCart(Long id) {
+        return cartService.get(id);
+    }
+
+    @PostMapping("/")
+    public Map<String, Long> register(@RequestBody CartDTO cartDTO){
+        Long id = cartService.register(cartDTO);
+        return Map.of("id", id);
+    }
+
+    @GetMapping("/list")
+    public PageResponseDTO<CartDTO> list(SearchDTO searchDTO, String email){
+        return cartService.list(searchDTO, email);
+    }
+
+    @GetMapping("/delete/{id}")
+    public Map<String, String> remove(@PathVariable(name="id") Long id){
+        cartService.remove(id);
+        return Map.of("RESULT","SUCCESS");
+    }
 }

@@ -25,22 +25,22 @@ import lombok.ToString;
 @SequenceGenerator(name = "CART_SEQ_GEN", sequenceName = "CART_SEQ", allocationSize = 1, initialValue = 1)
 public class Cart {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE , generator = "CART_SEQ_GEN")
-	@Column(name = "CART_ID")
-	private Long id;
-	
-	@ManyToOne
-	@JoinColumn(name = "ITEMBOARD_ID") // 실제 DB 테이블의 FK 컬럼명을 지정
-	private ItemBoard itemBoard;
-	
-	@ManyToOne
-	@JoinColumn(name = "MEMBER_NO") // 실제 DB 테이블의 FK 컬럼명을 지정
-	private Member member;
-	
-	private Integer enabled;
-	
-	public void changeEnabled(int enabled) {
-		this.enabled = enabled;
-	}
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE , generator = "CART_SEQ_GEN")
+    @Column(name = "CART_ID")
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "ITEMBOARD_ID") // 실제 DB 테이블의 FK 컬럼명을 지정
+    private ItemBoard itemBoard;
+
+    @ManyToOne
+    @JoinColumn(name = "MEMBER_EMAIL") // 실제 DB 테이블의 FK 컬럼명을 지정
+    private Member member;
+
+    private Integer enabled;
+
+    public void changeEnabled(int enabled) {
+        this.enabled = enabled;
+    }
 }
