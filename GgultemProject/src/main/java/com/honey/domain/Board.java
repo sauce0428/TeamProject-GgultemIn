@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name = "board")
+@Table(name = "board") // DB테이블 이름
 @SequenceGenerator(name = "BOARD_SEQ_GEN", sequenceName = "BOARD_SEQ1", initialValue = 1, allocationSize = 1)
 @Getter
 @ToString
@@ -37,14 +37,16 @@ public class Board extends BaseTimeEntity {
 	private int boardNo;
 
 	@ManyToOne
-	@JoinColumn(name = "MEMBER_NO") // 실제 DB 테이블의 FK 컬럼명을 지정
+	@JoinColumn(name = "member_email") // 실제 DB 테이블의 FK 컬럼명을 지정
 	private Member member;
 
 	private String title;
 	private String writer;
 	private String content;
 	private int viewCount;
-	private Integer enabled; // 1: 활성화 / 0:삭제
+	
+	@Builder.Default
+	private Integer enabled = 1; // 1: 활성화 / 0:삭제
 
 	@ElementCollection
 	@Builder.Default
@@ -84,16 +86,15 @@ public class Board extends BaseTimeEntity {
 	}
 
 	public void changeEnabled(int enabled) {
+		this.enabled = enabled;
 		switch (enabled) {
 		case 1:
 			this.dtdDate = null;
 			break;
 		case 0:
-			this.enabled = enabled;
 			this.dtdDate = LocalDateTime.now();
 			break;
 		}
-
 	}
 
 }

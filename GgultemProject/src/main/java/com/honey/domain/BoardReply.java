@@ -45,7 +45,7 @@ public class BoardReply extends BaseTimeEntity {
 
 	// 작성자
 	@ManyToOne
-	@JoinColumn(name = "NO_MEMBER", nullable = false)
+	@JoinColumn(name = "member_email", nullable = false)
 	private Member member;
 
 	private String content;
@@ -56,12 +56,13 @@ public class BoardReply extends BaseTimeEntity {
 	private BoardReply parent;
 
 	// 대댓글 리스트
-	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "parent")
 	@Builder.Default
 	private List<BoardReply> childList = new ArrayList<>();
 
 	// 삭제 여부 / 데이터는 남기는 역할
-	private Integer enabled; // 1: 활성 / 0: 삭제
+	@Builder.Default
+	private Integer enabled = 1; // 1: 활성 / 0: 삭제
 
 	private LocalDateTime dtdDate;
 
@@ -70,16 +71,22 @@ public class BoardReply extends BaseTimeEntity {
 	}
 
 	public void changeEnabled(int enabled) {
+		this.enabled = enabled;
 		switch (enabled) {
 		case 1:
 			this.dtdDate = null;
 			break;
 		case 0:
-			this.enabled = enabled;
 			this.dtdDate = LocalDateTime.now();
 			break;
 		}
 	}
+	
+	public void addChild(BoardReply child) {
+	    childList.add(child);
+	    child.parent = this;
+	}
+	
 	
 	
 }

@@ -21,7 +21,7 @@ public class BoardDTO {
 
 	private Integer boardNo;
 
-	private Long memberNo; // 작성자 회원번호
+	private String email; // 작성자 이메일
 
 	private String title;
 
@@ -29,15 +29,17 @@ public class BoardDTO {
 
 	private String content;
 
-	private Integer viewCount;
+	@Builder.Default
+	private Integer viewCount = 0;
 
-	private Integer enabled;
+	@Builder.Default
+	private Integer enabled = 1;
 
 	// 새로 업로드할 파일들
 	@Builder.Default
 	private List<MultipartFile> files = new ArrayList<>();
 
-	// 업로드 완료된 파일명들
+	// 서버에 저장된 파일명 리스트
 	@Builder.Default
 	private List<String> uploadFileNames = new ArrayList<>();
 
@@ -49,5 +51,7 @@ public class BoardDTO {
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime dtdDate;
+
+	
 
 }

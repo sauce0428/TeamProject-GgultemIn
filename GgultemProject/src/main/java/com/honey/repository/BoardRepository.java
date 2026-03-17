@@ -10,18 +10,22 @@ import org.springframework.data.repository.query.Param;
 import com.honey.domain.Board;
 
 public interface BoardRepository extends JpaRepository<Board, Integer> {
-	
-	@Query("select b from Board b where enabled = 1")
-	Page<Board> findAllByEnabled(Pageable pageable);
-	
-	@EntityGraph(attributePaths = {"boardImage"})
-	@Query("SELECT b FROM Board b WHERE " +
-	       "( (:searchType = 'title' AND b.title LIKE %:keyword%) OR " +
-	       "  (:searchType = 'writer' AND b.writer LIKE %:keyword%) OR " +
-	       "  (:searchType = 'content' AND b.content LIKE %:keyword%) OR " +
-	       "  (:searchType = 'all' AND (b.title LIKE %:keyword% OR b.writer LIKE %:keyword% OR b.content LIKE %:keyword%)) ) " +
-	       "OR " + // searchType이 없거나 비었을 때의 처리
-	       "( (:searchType IS NULL OR :searchType = '') AND (b.title LIKE %:keyword% OR b.writer LIKE %:keyword% OR b.content LIKE %:keyword%) )")
-	Page<Board> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword, Pageable pageable);
 
+	// 삭제 안된 게시글만
+	@EntityGraph(attributePaths = { "boardImage" })
+	@Query("SELECT b FROM Board b WHERE b.enabled = 1")
+	Page<Board> findAllActive(Pageable pageable);
+
+	// 검색 + 삭제 제외
+	@EntityGraph(attributePaths = { "boardImage" })
+	@Query("SELECT b FROM Board b WHERE b.enabled = 1 AND ("
+			+ "( (:searchType = 'title' AND b.title LIKE %:keyword%) OR "
+			+ "  (:searchType = 'writer' AND b.writer LIKE %:keyword%) OR "
+			+ "  (:searchType = 'content' AND b.content LIKE %:keyword%) OR "
+			+ "  (:searchType = 'all' AND (b.title LIKE %:keyword% OR b.writer LIKE %:keyword% OR b.content LIKE %:keyword%)) ) "
+			+ "OR "
+			+ "( (:searchType IS NULL OR :searchType = '') AND (b.title LIKE %:keyword% OR b.writer LIKE %:keyword% OR b.content LIKE %:keyword%) )"
+			+ ")")
+	Page<Board> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword,
+			Pageable pageable);
 }
