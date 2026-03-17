@@ -24,7 +24,7 @@ public class BusinessBoardDTO {
 	private Integer price;
 	private String category;
 	private String content;
-	private String businessMemberId;
+	private String memberEmail;
 	private String writer;
 	private Integer enabled;
 	private String sign;

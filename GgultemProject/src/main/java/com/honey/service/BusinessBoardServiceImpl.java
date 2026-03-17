@@ -14,11 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.honey.domain.BusinessBoard;
+import com.honey.domain.Member;
 import com.honey.dto.BusinessBoardDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
 import com.honey.dto.SearchDTO;
 import com.honey.repository.BusinessBoardRepository;
+import com.honey.repository.MemberRepository;
 import com.honey.util.CustomFileUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -32,15 +33,19 @@ public class BusinessBoardServiceImpl implements BusinessBoardService {
 	
 	private final ModelMapper modelMapper;
 	private final BusinessBoardRepository boardRepository;
+	private final MemberRepository memberRepository;
 	private final CustomFileUtil fileUtil;
 	
 	@Override
 	public Long register(BusinessBoardDTO businessBoardDTO) {
+		Member writer = memberRepository.findById(businessBoardDTO.getMemberEmail())
+	            .orElseThrow(() -> new RuntimeException("작성자 정보를 찾을 수 없습니다."));
+		
 		BusinessBoard businessBoard = modelMapper.map(businessBoardDTO, BusinessBoard.class);
 		
 		businessBoard.changeEnabled(1);
 		businessBoard.changeSign('N');
-		businessBoard.setWriter(businessBoardDTO.getBusinessMemberId());
+		businessBoard.setWriter(writer);
 		businessBoard.setEndDate(businessBoardDTO.getEndDate());
 		
 		List<String> newFileNames = businessBoardDTO.getUploadFileNames();
@@ -54,11 +59,14 @@ public class BusinessBoardServiceImpl implements BusinessBoardService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public BusinessBoardDTO get(Long no) {
 		Optional<BusinessBoard> result = boardRepository.findById(no);
 		BusinessBoard businessBoard = result.orElseThrow();
 		
 		BusinessBoardDTO businessBoardDTO = modelMapper.map(businessBoard, BusinessBoardDTO.class);
+		
+		businessBoardDTO.setWriter(businessBoard.getWriter().getNickname());
 		
 		List<String> fileNameList = businessBoard.getBItemList().stream().map(item -> item.getFileName())
 				.collect(Collectors.toList());
@@ -71,6 +79,7 @@ public class BusinessBoardServiceImpl implements BusinessBoardService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public PageResponseDTO<BusinessBoardDTO> list(SearchDTO searchDTO) {
 		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
 				searchDTO.getSize(), Sort.by("no").descending());
@@ -87,6 +96,11 @@ public class BusinessBoardServiceImpl implements BusinessBoardService {
 		
 		List<BusinessBoardDTO> dtoList = result.getContent().stream().map(businessBoard -> {
 			BusinessBoardDTO dto = modelMapper.map(businessBoard, BusinessBoardDTO.class);
+			
+			// 작성자 닉네임 세팅 (이걸 안 하면 리스트에 이메일만 나오거나 null이 나옵니다)
+		    if (businessBoard.getWriter() != null) {
+		        dto.setWriter(businessBoard.getWriter().getNickname());
+		    }
 
 	        List<String> fileNameList = businessBoard.getBItemList().stream()
 	                .map(item -> item.getFileName())

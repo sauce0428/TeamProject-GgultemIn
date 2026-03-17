@@ -2,6 +2,7 @@ package com.honey.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,6 +11,7 @@ import com.honey.domain.BusinessBoard;
 
 public interface BusinessBoardRepository extends JpaRepository<BusinessBoard, Long> {
 	
+	@EntityGraph(attributePaths = {"writer", "bItemList"})
 	@Query("SELECT bb FROM BusinessBoard bb WHERE " +
 		       "( (:searchType = 'title' AND bb.title LIKE %:keyword%) OR " +
 		       "  (:searchType = 'category' AND bb.category LIKE %:keyword%) OR " +
