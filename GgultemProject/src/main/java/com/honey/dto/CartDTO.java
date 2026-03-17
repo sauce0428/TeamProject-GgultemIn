@@ -20,6 +20,7 @@ public class CartDTO {
 	private Long id;
 	private Long itemId;
 	private ItemBoard itemBoard;
+	private String email;
 	private Member member;
 	private Integer enabled;
 	
