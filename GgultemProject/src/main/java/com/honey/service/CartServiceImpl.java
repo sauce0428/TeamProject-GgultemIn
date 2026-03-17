@@ -1,7 +1,6 @@
 package com.honey.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,8 +16,8 @@ import com.honey.domain.Cart;
 import com.honey.domain.ItemBoard;
 import com.honey.domain.Member;
 import com.honey.dto.CartDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.repository.CartRepository;
 import com.honey.repository.ItemBoardRepository;
 import com.honey.repository.MemberRepository;
@@ -69,15 +68,25 @@ public class CartServiceImpl implements CartService {
 	}
 
 	@Override
-	public PageResponseDTO<CartDTO> list(PageRequestDTO pageRequestDTO) {
-		Pageable pageable = PageRequest.of(pageRequestDTO.getPage() -1, pageRequestDTO.getSize(),
+	public PageResponseDTO<CartDTO> list(SearchDTO searchDTO, Long memberNo) {
+		Pageable pageable = PageRequest.of(searchDTO.getPage() -1, searchDTO.getSize(),
 				Sort.by("id").descending());
-		Page<Cart> result = cartRepository.findAll(pageable);
+		Page<Cart> result = null;
+		
+		if(searchDTO != null && !searchDTO.getKeyword().isEmpty()) {
+			result = cartRepository.searchByCondition(
+					searchDTO.getSearchType(),
+					searchDTO.getKeyword(),
+					pageable, memberNo);
+		}else {
+			result = cartRepository.findAll(pageable);
+		}
+		
 		List<CartDTO> dtoList = result.getContent().stream()
 				.map(Cart -> modelMapper.map(Cart, CartDTO.class)).collect(Collectors.toList());
 		long totalCount = result.getTotalElements();
 		PageResponseDTO<CartDTO> responseDTO = PageResponseDTO.<CartDTO>withAll().dtoList(dtoList)
-				.pageRequestDTO(pageRequestDTO).totalCount(totalCount).build();
+				.pageRequestDTO(searchDTO).totalCount(totalCount).build();
 		
 		return responseDTO;
 	}

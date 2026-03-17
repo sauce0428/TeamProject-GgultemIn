@@ -1,10 +1,8 @@
 package com.honey.service;
 
-import java.util.Map;
-
 import com.honey.dto.CartDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 
 public interface CartService {
 
@@ -12,7 +10,7 @@ public interface CartService {
 
 	public Long register(CartDTO cartDTO);
 
-	public PageResponseDTO<CartDTO> list(PageRequestDTO pageRequestDTO);
+	public PageResponseDTO<CartDTO> list(SearchDTO searchDTO, Long memberNo);
 
 	public void remove(Long id);
 

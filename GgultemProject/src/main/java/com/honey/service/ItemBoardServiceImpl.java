@@ -15,6 +15,7 @@ import com.honey.domain.ItemBoard;
 import com.honey.dto.ItemBoardDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.repository.ItemBoardRepository;
 import com.honey.util.CustomFileUtil;
 
@@ -80,15 +81,25 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 	}
 
 	@Override
-	public PageResponseDTO<ItemBoardDTO> list(PageRequestDTO pageRequestDTO) {
-		Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, pageRequestDTO.getSize(),
+	public PageResponseDTO<ItemBoardDTO> list(SearchDTO searchDTO) {
+		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(),
 				Sort.by("id").descending());
-		Page<ItemBoard> result = itemBoardRepository.findAllList(pageable);
+		Page<ItemBoard> result = null;
+		
+		if(searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
+			result = itemBoardRepository.searchByCondition(
+					searchDTO.getSearchType(),
+					searchDTO.getKeyword(),
+					pageable);
+		}else {
+			result = itemBoardRepository.findAllList(pageable);
+		}
+		
 		List<ItemBoardDTO> dtoList = result.getContent().stream()
 				.map(itemBoard -> modelMapper.map(itemBoard, ItemBoardDTO.class)).collect(Collectors.toList());
 		long totalCount = result.getTotalElements();
 		PageResponseDTO<ItemBoardDTO> responseDTO = PageResponseDTO.<ItemBoardDTO>withAll().dtoList(dtoList)
-				.pageRequestDTO(pageRequestDTO).totalCount(totalCount).build();
+				.pageRequestDTO(searchDTO).totalCount(totalCount).build();
 
 		return responseDTO;
 	}

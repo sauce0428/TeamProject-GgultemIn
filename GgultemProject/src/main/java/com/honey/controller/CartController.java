@@ -10,11 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.honey.dto.CartDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.service.CartService;
-import com.honey.service.ItemBoardService;
-import com.honey.service.MemberService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -39,8 +37,8 @@ public class CartController {
 	}
 	
 	@GetMapping("/list")
-	public PageResponseDTO<CartDTO> list(PageRequestDTO pageRequestDTO){
-		return cartService.list(pageRequestDTO);
+	public PageResponseDTO<CartDTO> list(SearchDTO searchDTO, Long memberNo){
+		return cartService.list(searchDTO, memberNo);
 	}
 	
 	@GetMapping("/delete/{id}")

@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.honey.dto.ItemBoardDTO;
-import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.dto.SearchDTO;
 import com.honey.service.ItemBoardService;
 import com.honey.util.CustomFileUtil;
 
@@ -52,9 +52,9 @@ public class ItemBoardController {
 	}
 
 	@GetMapping("/list")
-	public PageResponseDTO<ItemBoardDTO> list(PageRequestDTO pageRequestDTO) {
-		log.info(pageRequestDTO);
-		return itemBoardService.list(pageRequestDTO);
+	public PageResponseDTO<ItemBoardDTO> list(SearchDTO searchDTO) {
+		log.info(searchDTO);
+		return itemBoardService.list(searchDTO);
 	}
 
 	@PutMapping("/{id}")
