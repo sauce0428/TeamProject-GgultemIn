@@ -9,6 +9,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import com.google.gson.Gson;
 import com.honey.dto.MemberDTO;
+import com.honey.util.JWTUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,8 +27,12 @@ public class APILoginSuccessHandler implements AuthenticationSuccessHandler {
 		log.info(" ");
 		MemberDTO memberDTO = (MemberDTO) authentication.getPrincipal();
 		Map<String, Object> claims = memberDTO.getClaims();
-		claims.put("accessToken", ""); // 나중에 구현
-		claims.put("refreshToken", ""); // 나중에 구현
+		
+		String accessToken = JWTUtil.generateToken(claims, 10); // 10 분 
+		String refreshToken = JWTUtil.generateToken(claims, 60 * 24); // 24 시간 
+		
+		claims.put("accessToken", accessToken); 
+		claims.put("refreshToken", refreshToken);
 
 		Gson gson = new Gson();
 		String jsonStr = gson.toJson(claims);

@@ -24,7 +24,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/businesspage/board")
+@RequestMapping("/business/board")
 public class BusinessBoardPageController {
 	
 	private final BusinessBoardService businessBoardService;
