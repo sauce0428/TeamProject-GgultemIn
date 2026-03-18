@@ -1,7 +1,10 @@
 package com.honey.config;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,7 +18,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.honey.domain.Member;
+import com.honey.domain.MemberRole;
 import com.honey.filter.JWTCheckFilter;
+import com.honey.repository.MemberRepository;
+import com.honey.security.handler.APILoginFailHandler;
 import com.honey.security.handler.APILoginSuccessHandler;
 import com.honey.security.handler.CustomAccessDeniedHandler;
 
@@ -41,10 +48,17 @@ public class CustomSecurityConfig {
 		http.csrf(config -> config.disable());
 		//로그인페이지 URL을 /api/member/login 지정하고, 인증되지 않은 사용자가 보호된 리소스를 요청하면 이URL로  
 		//리다이렉트된다. 
+		// ✅ [추가] 인증 없이 접근 가능한 경로 설정
+	    http.authorizeHttpRequests(auth -> auth
+	        .requestMatchers("/", "/member/kakao", "/api/member/kakao").permitAll() // 메인, 로그인, 회원가입, 상품목록은 허용
+	        .requestMatchers("/error", "/login").permitAll()
+	        .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
+	    );
 		http.formLogin(config ->{  
-		config.loginPage("/api/member/login");  
+		config.loginPage("/login");
 		// 로그인 성공 시 실행될 핸들러 객체를 지정 코드 
 		config.successHandler(new APILoginSuccessHandler());
+		config.failureHandler(new APILoginFailHandler());
 		}); 
 		
 		// JWT 체크 추가 
@@ -76,4 +90,26 @@ public class CustomSecurityConfig {
 	public PasswordEncoder passwordEncoder() { 
 	   return new BCryptPasswordEncoder(); 
 	}
+	
+	@Bean
+    public CommandLineRunner initData(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            String adminEmail = "admin@honey.com";
+
+            // 1. 이미 관리자 계정이 있는지 확인
+            if (memberRepository.findById(adminEmail).isEmpty()) {
+                // 2. 관리자 객체 생성 (사용 중인 Member 엔티티 구조에 맞게 수정하세요)
+                Member admin = Member.builder()
+                        .email(adminEmail)
+                        .pw(passwordEncoder.encode("1111")) // 테스트용 비밀번호
+                        .nickname("꿀템관리자")
+                        .build();
+                admin.addRole(MemberRole.MEMBER);
+                admin.addRole(MemberRole.ADMIN);
+
+                memberRepository.save(admin);
+                System.out.println("✅ 관리자 계정이 자동 생성되었습니다: " + adminEmail);
+            }
+        };
+    }
 }

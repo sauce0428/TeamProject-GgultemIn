@@ -19,4 +19,6 @@ public interface MemberService {
 
 	public void updateToThumbnail(MemberDTO memberDTO);
 
+	public MemberDTO getKakaoMember(String code);
+
 }

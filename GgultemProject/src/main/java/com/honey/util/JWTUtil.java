@@ -30,6 +30,11 @@ public class JWTUtil {
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
+		// 에러 방지: JSON 변환이 안 되는 LocalDateTime 타입이 있다면 제거하거나 변환
+	    if (valueMap.containsKey("regDate")) {
+	        valueMap.remove("regDate"); // 굳이 토큰에 날짜 정보가 필요 없다면 삭제
+	        // 또는 valueMap.put("regDate", valueMap.get("regDate").toString()); // 문자열로 변환
+	    }
 		// JWT 토큰 문자열을 생성
 		String jwtStr = Jwts.builder().setHeader(Map.of("typ", "JWT")) // JWT 헤더 지정
 				.setClaims(valueMap) // 사용자 정보(Claims) 설정

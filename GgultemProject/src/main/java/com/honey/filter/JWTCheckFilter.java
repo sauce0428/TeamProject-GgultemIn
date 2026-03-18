@@ -34,27 +34,27 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 			String accessToken = authHeaderStr.substring(7);
 			Map<String, Object> claims = JWTUtil.validateToken(accessToken);
 			log.info("JWT claims: " + claims);
-			
-			// filterChain.doFilter(request, response); //이하 추가 
-			String email = (String) claims.get("email"); 
-			String pw = (String) claims.get("pw"); 
-			String nickname = (String) claims.get("nickname");  
-			Boolean social = (Boolean) claims.get("social"); 
-			Set<String> roleNames = (Set<String>) claims.get("roleNames"); 
-			LocalDateTime regDate = (LocalDateTime)claims.get("regDate");
-			
-			MemberDTO memberDTO = new MemberDTO(email, pw, nickname, 
-			social.booleanValue(), roleNames, regDate); 
 
-			//스프링 시큐리티에서 인증 정보를 담는 객체 
-			UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(memberDTO, pw, memberDTO.getAuthorities()); 
-			
-			//이 객체를 SecurityContextHolder에 넣으면,  
-			//해당 요청은 인증된 사용자로 처리됨 
-			SecurityContextHolder.getContext().setAuthentication(authenticationToken); 
-			
+			// filterChain.doFilter(request, response); //이하 추가
+			String email = (String) claims.get("email");
+			String pw = (String) claims.get("pw");
+			String nickname = (String) claims.get("nickname");
+			Boolean social = (Boolean) claims.get("social");
+			Set<String> roleNames = (Set<String>) claims.get("roleNames");
+			LocalDateTime regDate = (LocalDateTime) claims.get("regDate");
+
+			MemberDTO memberDTO = new MemberDTO(email, pw, nickname, social.booleanValue(), roleNames, regDate);
+
+			// 스프링 시큐리티에서 인증 정보를 담는 객체
+			UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(memberDTO,
+					pw, memberDTO.getAuthorities());
+
+			// 이 객체를 SecurityContextHolder에 넣으면,
+			// 해당 요청은 인증된 사용자로 처리됨
+			SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
 			filterChain.doFilter(request, response);
-			
+
 		} catch (Exception e) {
 			log.error("JWT Check Error .................................... ");
 			log.error(e.getMessage());
@@ -78,13 +78,15 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 		String path = request.getRequestURI();
 		log.info("check uri. .............. " + path);
 		// api/member/ 경로의 호출은 체크하지 않음
-		if (path.startsWith("/api/member/")) {
+		if (path.startsWith("/login") || path.equals("/") || path.equals("/member/refresh")) {
 			return true;
 		}
-		// 이미지 조회 경로는 체크하지 않하고 싶을 때
-		if (path.startsWith("/api/products/view/")) {
-			return true;
-		}
+		if (path.contains("/member/kakao")) {
+	        return true; 
+	    }
+		if (path.startsWith("/api/member/login")) {
+	        return true;
+	    }
 		return false;
 	}
 

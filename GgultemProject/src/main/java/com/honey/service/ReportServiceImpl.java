@@ -38,7 +38,7 @@
 //        // DTO의 memberNo를 사용하여 DB에서 실제 회원 객체를 가져옵니다.
 ////        Member reporter = memberRepository.findById(reportDTO.getMemberNo())
 ////                .orElseThrow(() -> new IllegalArgumentException("신고자를 찾을 수 없습니다."));
-//        Member member = Member.builder().no(reportDTO.getMemberNo().longValue()).build();
+//        //Member member = Member.builder().no(reportDTO.getMemberNo().longValue()).build();
 //        
 //
 //        Report report = Report.builder()
