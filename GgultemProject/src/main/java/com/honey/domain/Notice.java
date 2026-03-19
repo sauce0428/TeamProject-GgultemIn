@@ -62,6 +62,11 @@ public class Notice extends BaseTimeEntity {
     @ElementCollection
 	@Builder.Default 
 	private List<NoticeImage> noticeImage = new ArrayList<>(); 
+    
+    @Column(name = "IS_PINNED", nullable = false)
+    @Builder.Default  // Builder 사용 시 기본값 0이 들어가도록 설정
+    private int isPinned = 0;
+    // 기본 0, 상단고정시 1
 
     
     //공지사항 제목 수정 메서드
@@ -104,6 +109,10 @@ public class Notice extends BaseTimeEntity {
 	public void clearList() {
 		this.noticeImage.clear();
 	}
+	
+	public void changePinned(int isPinned) {
+        this.isPinned = isPinned;
+    }
 }
 
 
