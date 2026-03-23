@@ -22,99 +22,103 @@ import lombok.extern.log4j.Log4j2;
 @RequestMapping("/board")
 public class BoardController {
 
-    private final BoardService service;
-    private final CustomFileUtil fileUtil;
+	private final BoardService service;
+	private final CustomFileUtil fileUtil;
 
-    // =========================
-    // 게시글 조회
-    // =========================
-    @GetMapping("/{boardNo}")
-    public BoardDTO getBoard(@PathVariable Integer boardNo) {
-        return service.get(boardNo);
-    }
+	// =========================
+	// 게시글 조회
+	// =========================
+	@GetMapping("/{boardNo}")
+	public BoardDTO getBoard(@PathVariable Integer boardNo) {
+		return service.get(boardNo);
+	}
 
-    // =========================
-    // 게시글 등록
-    // =========================
-    @PostMapping("/")
-    public Map<String, Integer> register(BoardDTO boardDTO) {
+	// =========================
+	// 게시글 등록
+	// =========================
+	@PostMapping("/")
+	public Map<String, Integer> register(BoardDTO boardDTO) {
 
-        log.info("Board register: " + boardDTO);
+		log.info("Board register: " + boardDTO);
 
-        // 파일 저장
-        List<String> fileNames = fileUtil.saveFiles(boardDTO.getFiles());
+		// 파일 저장
+		List<String> fileNames = fileUtil.saveFiles(boardDTO.getFiles());
 
-        // DTO에 파일명 세팅
-        boardDTO.setUploadFileNames(fileNames);
+		if (boardDTO.getFiles() != null && !boardDTO.getFiles().isEmpty()) {
+			fileNames = fileUtil.saveFiles(boardDTO.getFiles());
+		}
 
-        Integer boardNo = service.register(boardDTO);
+		// DTO에 파일명 세팅
+		boardDTO.setUploadFileNames(fileNames);
 
-        return Map.of("BOARD_NO", boardNo);
-    }
+		Integer boardNo = service.register(boardDTO);
 
-    // =========================
-    // 게시글 목록 (페이징)
-    // =========================
-    @GetMapping("/list")
-    public PageResponseDTO<BoardDTO> list(SearchDTO searchDTO) {
-        log.info(searchDTO);
-        return service.list(searchDTO);
-    }
+		return Map.of("BOARD_NO", boardNo);
+	}
 
-    // =========================
-    // 게시글 수정 (파일 유지/교체 대응)
-    // =========================
-    @PutMapping("/{boardNo}")
-    public Map<String, String> modify(@PathVariable Integer boardNo, BoardDTO boardDTO) {
+	// =========================
+	// 게시글 목록 (페이징)
+	// =========================
+	@GetMapping("/list")
+	public PageResponseDTO<BoardDTO> list(SearchDTO searchDTO) {
+		log.info(searchDTO);
+		return service.list(searchDTO);
+	}
 
-        boardDTO.setBoardNo(boardNo);
+	// =========================
+	// 게시글 수정 (파일 유지/교체 대응)
+	// =========================
+	@PutMapping("/{boardNo}")
+	public Map<String, String> modify(@PathVariable Integer boardNo, BoardDTO boardDTO) {
 
-        // 1 기존 파일
-        BoardDTO oldDTO = service.get(boardNo);
-        List<String> oldFileNames = oldDTO.getUploadFileNames();
+		boardDTO.setBoardNo(boardNo);
 
-        // 2️ 새 파일 저장
-        List<String> newFileNames = fileUtil.saveFiles(boardDTO.getFiles());
+		// 1 기존 파일
+		BoardDTO oldDTO = service.get(boardNo);
+		List<String> oldFileNames = oldDTO.getUploadFileNames();
 
-        if (newFileNames == null || newFileNames.isEmpty()) {
-            // 파일 없으면 기존 유지
-            boardDTO.setUploadFileNames(oldFileNames);
-        } else {
-            // 새 파일 있으면 교체
-            boardDTO.setUploadFileNames(newFileNames);
+		// 2️ 새 파일 저장
+		List<String> newFileNames = fileUtil.saveFiles(boardDTO.getFiles());
 
-            // 기존 파일 삭제
-            fileUtil.deleteFiles(oldFileNames);
-        }
+		if (newFileNames == null || newFileNames.isEmpty()) {
+			// 파일 없으면 기존 유지
+			boardDTO.setUploadFileNames(oldFileNames);
+		} else {
+			// 새 파일 있으면 교체
+			boardDTO.setUploadFileNames(newFileNames);
 
-        service.modify(boardDTO);
+			// 기존 파일 삭제
+			fileUtil.deleteFiles(oldFileNames);
+		}
 
-        return Map.of("RESULT", "SUCCESS");
-    }
+		service.modify(boardDTO);
 
-    // =========================
-    // 게시글 삭제 (논리삭제 + 파일삭제)
-    // =========================
-    @PutMapping("remove/{boardNo}")
-    public Map<String, String> remove(@PathVariable Integer boardNo) {
+		return Map.of("RESULT", "SUCCESS");
+	}
 
-        // 기존 파일 가져오기
-        BoardDTO dto = service.get(boardNo);
+	// =========================
+	// 게시글 삭제 (논리삭제 + 파일삭제)
+	// =========================
+	@PutMapping("remove/{boardNo}")
+	public Map<String, String> remove(@PathVariable Integer boardNo) {
 
-        // DB 논리삭제
-        service.remove(boardNo);
+		// 기존 파일 가져오기
+		BoardDTO dto = service.get(boardNo);
 
-        // 파일 삭제
-        fileUtil.deleteFiles(dto.getUploadFileNames());
+		// DB 논리삭제
+		service.remove(boardNo);
 
-        return Map.of("RESULT", "SUCCESS");
-    }
+		// 파일 삭제
+		fileUtil.deleteFiles(dto.getUploadFileNames());
 
-    // =========================
-    // 파일 조회 (이미지 출력)
-    // =========================
-    @GetMapping("/view/{fileName}")
-    public ResponseEntity<Resource> viewFileGET(@PathVariable String fileName) {
-        return fileUtil.getFile(fileName);
-    }
+		return Map.of("RESULT", "SUCCESS");
+	}
+
+	// =========================
+	// 파일 조회 (이미지 출력)
+	// =========================
+	@GetMapping("/view/{fileName}")
+	public ResponseEntity<Resource> viewFileGET(@PathVariable String fileName) {
+		return fileUtil.getFile(fileName);
+	}
 }
