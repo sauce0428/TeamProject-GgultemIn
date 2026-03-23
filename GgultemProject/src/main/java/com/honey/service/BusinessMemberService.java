@@ -17,4 +17,6 @@ public interface BusinessMemberService {
 
 	public boolean verifyBusinessNumber(String cleanBNo);
 
+	public MemberDTO get(String email);
+
 }

@@ -43,6 +43,37 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 	
 	@Value("${com.honey.business.api.key}")
 	private String businessKey;
+	
+	@Override
+	public MemberDTO get(String email) {
+		Member member = memberRepository.findById(email).orElseThrow(() -> new RuntimeException("해당 회원을 찾을 수 없습니다."));
+
+		MemberDTO memberDTO = new MemberDTO(member.getEmail(), member.getPw(), member.getNickname(), member.isSocial(),
+				member.getMemberRoleSet().stream().map(memberRole -> memberRole.name()).collect(Collectors.toSet()),
+				member.getRegDate());
+		
+		memberDTO.setBusinessNumber(member.getBusinessNumber());
+		memberDTO.setCompanyName(member.getCompanyName());
+		memberDTO.setBizMoney(member.getBizMoney());
+		memberDTO.setBusinessVerified(member.isBusinessVerified());
+
+		List<String> fileNameList = member.getThumbnailList().stream().map(thumbnail -> thumbnail.getFileName())
+				.collect(Collectors.toList());
+
+		if (fileNameList != null && !fileNameList.isEmpty()) {
+			memberDTO.setUploadFileNames(fileNameList);
+		} else {
+			memberDTO.setUploadFileNames(List.of("default.jpg"));
+		}
+
+		memberDTO.setEnabled(member.getEnabled());
+		memberDTO.setPhone(member.getPhone());
+		memberDTO.setDtdDate(member.getDtdDate());
+		memberDTO.setStopDate(member.getStopDate());
+		memberDTO.setStopEndDate(member.getStopEndDate());
+
+		return memberDTO;
+	}
 
 	@Override
 	public PageResponseDTO<MemberDTO> list(SearchDTO searchDTO) {
@@ -56,7 +87,7 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 					searchDTO.getKeyword(),
 					pageable);
 		} else {
-			result = bMemberRepository.findAll(pageable);
+			result = bMemberRepository.findAllBusiness(pageable);
 		}
 		
 		List<MemberDTO> dtoList = result.getContent().stream().map(member -> {
