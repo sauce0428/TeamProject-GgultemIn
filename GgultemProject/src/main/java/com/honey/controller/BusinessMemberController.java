@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,13 @@ public class BusinessMemberController {
 	
 	private final BusinessMemberService businessService;
 	private final MemberService memberService;
+	
+	@GetMapping("/{email}")
+	public Map<String, Object> getMember(@PathVariable(name = "email") String email) {
+		// 🚩 MemberDTO를 통째로 리턴하지 말고, 필요한 데이터만 담긴 Map을 리턴하세요!
+		MemberDTO memberDTO = businessService.get(email);
+		return memberDTO.getClaims();
+	}
 	
 	@PostMapping("/")
 	public Map<String, String> businessMemberRegister(@RequestBody BusinessMemberRegisterDTO regDTO) {
