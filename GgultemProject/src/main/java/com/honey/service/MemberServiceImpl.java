@@ -101,6 +101,13 @@ public class MemberServiceImpl implements MemberService {
 		member.changePw(passwordEncoder.encode(memberDTO.getPw())); // 암호화
 		member.changeStatus(1);
 		member.addRole(MemberRole.MEMBER);
+		
+		List<String> newFileNames = memberDTO.getUploadFileNames();
+		if (newFileNames != null && !newFileNames.isEmpty()) {
+			newFileNames.forEach(fileName -> {
+				member.addImageString(fileName);
+			});
+		}
 
 		Member savedMember = memberRepository.save(member);
 
@@ -450,6 +457,9 @@ public class MemberServiceImpl implements MemberService {
 		Member member = Member.builder().email(email).pw(tempPassword).nickname("Google_" + email.split("@")[0])
 				.social(true) // 소셜 가입 여부 플래그
 				.build();
+
+		// ✅ 기본 썸네일 파일명을 리스트에 명시적으로 추가
+		member.addImageString("default.jpg");
 
 		// 회원 권한 추가 (예: USER 권한)
 		member.addRole(MemberRole.USER);

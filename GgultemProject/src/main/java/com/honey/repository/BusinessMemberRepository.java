@@ -2,21 +2,23 @@ package com.honey.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.honey.domain.BusinessMember;
+import com.honey.domain.Member;
 
-public interface BusinessMemberRepository extends JpaRepository<BusinessMember, Long> {
+public interface BusinessMemberRepository extends JpaRepository<Member, String> {
 	
-	@Query("SELECT bm FROM BusinessMember bm WHERE " +
-	       "( (:searchType = 'id' AND bm.id LIKE %:keyword%) OR " +
-	       "  (:searchType = 'businessName' AND bm.businessName LIKE %:keyword%) OR " +
-	       "  (:searchType = 'all' AND (bm.id LIKE %:keyword% OR bm.businessName LIKE %:keyword%)) ) " +
-	       "OR " + // searchType이 없거나 비었을 때의 처리
-	       "( (:searchType IS NULL OR :searchType = '') AND (bm.id LIKE %:keyword% OR bm.businessName LIKE %:keyword%) )")
-	Page<BusinessMember> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword, Pageable pageable);
+	@Query("SELECT m FROM Member m WHERE m.businessNumber IS NOT NULL AND (" +
+		       "(:searchType = 'email' AND m.email LIKE %:keyword%) OR " +
+		       "(:searchType = 'companyName' AND m.companyName LIKE %:keyword%) OR " +
+		       "(:searchType = 'businessNumber' AND m.businessNumber LIKE %:keyword%) OR " +
+		       "((:searchType = 'all' OR :searchType IS NULL OR :searchType = '') AND " +
+		       "(m.email LIKE %:keyword% OR m.companyName LIKE %:keyword% OR m.businessNumber LIKE %:keyword%))" +
+		       ")")
+		Page<Member> searchByCondition(@Param("searchType") String searchType, 
+		                               @Param("keyword") String keyword, 
+		                               Pageable pageable);
 
 }
