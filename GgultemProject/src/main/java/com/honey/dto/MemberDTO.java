@@ -17,9 +17,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"authorities", "enabled", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "username", "password"})
 public class MemberDTO extends User {
 	
 	private static final long serialVersionUID = 1L; 
@@ -32,6 +34,7 @@ public class MemberDTO extends User {
 	private String businessNumber; // 사업자 번호
     private String companyName;    // 상호명
     private int bizMoney;
+    private boolean businessVerified;
 	private Integer enabled;
 	private Set<String> roleNames = new HashSet<>();
 	
@@ -51,6 +54,7 @@ public class MemberDTO extends User {
 	private LocalDateTime stopEndDate;
 	
 	@Builder.Default
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	private List<MultipartFile> files = new ArrayList<>();
 	
 	@Builder.Default
@@ -75,6 +79,7 @@ public class MemberDTO extends User {
 	    this.roleNames = (roleNames == null ? new HashSet<>() : roleNames); 
 		this.regDate = regDate;
 		} 
+	
 		public Map<String, Object> getClaims() { 
 		Map<String, Object> dataMap = new HashMap<>(); 
 		dataMap.put("email", email); 
@@ -85,6 +90,9 @@ public class MemberDTO extends User {
 		dataMap.put("regDate", regDate); 
 		dataMap.put("bizMoney", bizMoney);
         dataMap.put("businessNumber", businessNumber);
+        dataMap.put("enabled", enabled);
+        dataMap.put("uploadFileNames", uploadFileNames);
+        dataMap.put("phone", phone);
 		return dataMap; 
 		} 
 	
