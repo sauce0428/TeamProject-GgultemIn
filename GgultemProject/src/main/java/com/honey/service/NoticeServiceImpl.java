@@ -160,15 +160,15 @@ public class NoticeServiceImpl implements NoticeService {
 		// 2. 검색 조건에 따른 분기 처리
 		if (searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
 
-			// ⭐ [팀장님 지시사항] 검색 로그 기록
+			// 검색 로그 기록
 			SearchLog logEntity = SearchLog.builder().keyword(searchDTO.getKeyword())
 					.searchType(searchDTO.getSearchType()).build();
 			searchLogRepository.save(logEntity);
 
-			// 🔍 검색 수행 (Repository에 작성한 searchByCondition 호출)
+			// 검색 수행 (Repository에 작성한 searchByCondition 호출)
 			result = noticeRepository.searchByCondition(searchDTO.getSearchType(), searchDTO.getKeyword(), pageable);
 		} else {
-			// 📑 일반 목록 조회 (삭제되지 않은 활성 공지사항만)
+			// 일반 목록 조회 (삭제되지 않은 활성 공지사항만)
 			result = noticeRepository.findAllByEnabled(pageable);
 		}
 
@@ -188,7 +188,7 @@ public class NoticeServiceImpl implements NoticeService {
 
 			// 작성자 이름 세팅 (Member 객체에서 추출)
 			if (notice.getMember() != null) {
-			    // 닉네임 필드가 nickname이라면 getNickname()으로!
+			    // 닉네임 필드가 nickname으로 하기로 결정했으니 getNickname()
 			    dto.setWriter(notice.getMember().getNickname()); 
 			}
 

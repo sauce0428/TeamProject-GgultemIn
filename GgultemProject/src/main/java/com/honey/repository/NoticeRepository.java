@@ -17,7 +17,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     // 2. 검색 기능 이식
     @EntityGraph(attributePaths = {"noticeImage"}) // BoardImage -> noticeImage로 변경
-    @Query("SELECT n FROM Notice n WHERE " + // Board -> Notice로 변경
+    @Query("SELECT n FROM Notice n WHERE " +
            "(n.enabled = 1) AND (" + // 삭제되지 않은 것들 중에서 검색
            "( (:searchType = 'title' AND n.title LIKE %:keyword%) OR " +
            "  (:searchType = 'content' AND n.content LIKE %:keyword%) OR " +
