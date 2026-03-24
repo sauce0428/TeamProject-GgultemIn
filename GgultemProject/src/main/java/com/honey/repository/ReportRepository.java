@@ -13,11 +13,13 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 //    // 동일한 유저가 같은 게시글을 중복 신고하는걸 막고 싶을 때
 //    boolean existsByReporter_MemberNoAndTargetTypeAndTargetNo(Long no, String targetType, Long targetNo);
 	
+	
+	
 	    
 	List<Report> findByReporter_Email(String email);
 	    
 	 // 동일한 유저가 같은 게시글을 중복 신고하는걸 막고 싶을 때
-	// 1. 변수명인 'reporter'를 따라가야 합니다.
-    // 2. Member의 PK가 email이므로 _Email을 붙입니다.
+	// 1. 변수명인 'reporter'를 따라간다.
+    // 2. Member의 PK가 email이므로 _Email을 붙인다.
     boolean existsByReporter_EmailAndTargetTypeAndTargetNo(String email, String targetType, Long targetNo);
 }

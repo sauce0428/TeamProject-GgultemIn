@@ -33,6 +33,15 @@ public class ReportServiceImpl implements ReportService {
            (reportDTO.getReason() == null || reportDTO.getReason().trim().isEmpty())) {
             throw new IllegalArgumentException("기타 신고 시 상세 사유를 입력해야 합니다.");
         }
+        
+        boolean exists = reportRepository.existsByReporter_EmailAndTargetTypeAndTargetNo(
+        	    reportDTO.getMemberEmail(),
+        	    reportDTO.getTargetType(),
+        	    reportDTO.getTargetNo()
+        	);
+        	if (exists) {
+        	    throw new IllegalStateException("이미 신고한 게시물입니다.");
+        	}
 
         // 1. 신고자(Member) 엔티티 조회
         // DTO의 memberNo를 사용하여 DB에서 실제 회원 객체를 가져옵니다.
