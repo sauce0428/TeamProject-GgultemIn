@@ -13,13 +13,13 @@ public class PageResponseDTO<E> {
 	private List<E> dtoList; // 1페이지 10개 레코드
 	private List<Integer> pageNumList; // [1],2,3,4,5,6,7,8,9,10
 	private PageRequestDTO pageRequestDTO; // page = 1, size = 10
-	private boolean prev; 	// false
-	private boolean next; 	// true
+	private boolean prev; // false
+	private boolean next; // true
 	private int totalCount; // 99
-	private int prevPage;	// 0
-	private int nextPage;	// 2
-	private int totalPage;	// 10
-	private int current;	// 1
+	private int prevPage; // 0
+	private int nextPage; // 2
+	private int totalPage; // 10
+	private int current; // 1
 
 	// PageResponseDTO.builder() 대신 PageResponseDTO.withAll() 라는 이름으로 빌더를 사용
 	@Builder(builderMethodName = "withAll")

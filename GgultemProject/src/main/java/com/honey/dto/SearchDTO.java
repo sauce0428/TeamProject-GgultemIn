@@ -13,4 +13,7 @@ public class SearchDTO extends PageRequestDTO {
 	
 	private String searchType;
 	private String keyword;
+	
+	//관리자용
+	private String enabled;
 }

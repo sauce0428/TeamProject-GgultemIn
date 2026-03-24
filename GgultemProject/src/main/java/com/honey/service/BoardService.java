@@ -37,5 +37,8 @@ public interface BoardService {
     
     // 관리자 댓글 삭제 
 	void removeReply(Long replyNo);
+	
+	//댓글 리스트
+	PageResponseDTO<?> adminReplyList(SearchDTO searchDTO);
 
 }
