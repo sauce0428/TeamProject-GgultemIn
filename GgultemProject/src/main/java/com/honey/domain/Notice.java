@@ -43,7 +43,7 @@ public class Notice extends BaseTimeEntity {
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(length = 3000, nullable = false)
+    @Column(columnDefinition = "CLOB")
     private String content;
 
     // Member 엔티티의 'member_email' 컬럼을 참조하는 외래키 설정
