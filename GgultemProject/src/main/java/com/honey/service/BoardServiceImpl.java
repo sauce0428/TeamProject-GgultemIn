@@ -188,7 +188,7 @@ public class BoardServiceImpl implements BoardService {
         );
 
         String keyword = searchDTO.getKeyword();
-        Integer enabled = searchDTO.getEnabled();
+        Integer enabled = Integer.parseInt(searchDTO.getEnabled());
 
         // 🔥 빈값 방어
         if (keyword != null && keyword.trim().isEmpty()) {

@@ -107,7 +107,7 @@ public class BoardReplyServiceImpl implements BoardReplyService {
         );
 
         String keyword = searchDTO.getKeyword();
-        Integer enabled = searchDTO.getEnabled();
+        Integer enabled = Integer.parseInt(searchDTO.getEnabled());
 
         // 🔥 빈값 방어 (이거 중요)
         if (keyword != null && keyword.trim().isEmpty()) {

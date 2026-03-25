@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,75 +26,95 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class BlackListServiceImpl implements BlackListService {
-	private final ModelMapper modelMapper;
-	private final BlackListRepository repository;
+    
+    private final BlackListRepository repository;
 
-	@Override
-	public BlackListDTO get(Long blId) {
-		Optional<BlackList> result = repository.findById(blId);
-		BlackList blackList = result.orElseThrow();
-		
-		BlackListDTO blackListDTO = modelMapper.map(blackList, BlackListDTO.class);
-		
-		return blackListDTO;
-	}
-	
-	@Override
-	public Long register(BlackListDTO blackListDTO) {
-	    // ModelMapper 대신 Builder 패턴을 사용하여 명확하게 객체를 생성합니다.
-	    // 이렇게 하면 매핑 충돌 에러가 발생하지 않습니다.
-	    BlackList blackList = BlackList.builder()
-	            .userId(blackListDTO.getUserId())
-	            .reason(blackListDTO.getReason())
-	            .adminId(blackListDTO.getAdminId())
-	            .status(blackListDTO.getStatus())
-	            .startDate(LocalDateTime.now()) // 시작일은 서버 현재 시간으로 강제 설정
-	            .endDate(blackListDTO.getEndDate()) // 종료일은 DTO에서 받은 값 설정
-	            .enabled(1) // 활성화 상태로 설정
-	            .build();
-	    
-	    log.info("등록될 블랙리스트 엔티티: " + blackList);
-	    
-	    return repository.save(blackList).getBlId();
-	}
+    @Override
+    public BlackListDTO get(Long blId) {
+        BlackList blackList = repository.findById(blId)
+                .orElseThrow(() -> new RuntimeException("해당 블랙리스트가 존재하지 않습니다. ID: " + blId));
+        
+        // 수동 매핑 (안전)
+        return BlackListDTO.builder()
+                .blId(blackList.getBlId())
+                .email(blackList.getEmail())
+                .reason(blackList.getReason())
+                .adminId(blackList.getAdminId())
+                .status(blackList.getStatus())
+                .startDate(blackList.getStartDate())
+                .endDate(blackList.getEndDate())
+                .enabled(blackList.getEnabled())
+                .build();
+    }
+    
+    @Override
+    public Long register(BlackListDTO blackListDTO) {
+        log.info("--- Register Request: " + blackListDTO);
 
-	@Override
-	public PageResponseDTO<BlackListDTO> list(SearchDTO searchDTO) {
-		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
-				searchDTO.getSize(), Sort.by("blId").descending());
-		Page<BlackList> result = repository.findAllByEnabled(pageable);
-		
-		List<BlackListDTO> dtoList = result.getContent().stream().map(blackList -> {
-			BlackListDTO dto = modelMapper.map(blackList, BlackListDTO.class);
-	        return dto;
-	    }).collect(Collectors.toList());
+        // 엔티티의 Builder 패턴을 사용하여 필수 값(startDate, enabled)을 수동 할당
+        BlackList blackList = BlackList.builder()
+                .email(blackListDTO.getEmail())
+                .reason(blackListDTO.getReason())
+                .adminId(blackListDTO.getAdminId() != null ? blackListDTO.getAdminId() : "admin_01")
+                .status("Y") // 초기 상태 강제 주입
+                .startDate(LocalDateTime.now()) // 💡 엔티티 필드에 현재 시간 주입
+                .endDate(blackListDTO.getEndDate())
+                .enabled(1) // 💡 활성화 상태(1) 주입
+                .build();
+        
+        return repository.save(blackList).getBlId();
+    }
 
-	long totalCount = result.getTotalElements();
+    @Override
+    public PageResponseDTO<BlackListDTO> list(SearchDTO searchDTO) {
+        Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, 
+                searchDTO.getSize(), Sort.by("blId").descending());
+        
+        Page<BlackList> result = repository.findAllByEnabled(pageable);
+        
+        List<BlackListDTO> dtoList = result.getContent().stream().map(blackList -> 
+            BlackListDTO.builder()
+                .blId(blackList.getBlId())
+                .email(blackList.getEmail())
+                .reason(blackList.getReason())
+                .adminId(blackList.getAdminId())
+                .status(blackList.getStatus())
+                .startDate(blackList.getStartDate())
+                .endDate(blackList.getEndDate())
+                .enabled(blackList.getEnabled())
+                .build()
+        ).collect(Collectors.toList());
 
-	PageResponseDTO<BlackListDTO> responseDTO = PageResponseDTO.<BlackListDTO>withAll().dtoList(dtoList)
-			.pageRequestDTO(searchDTO).totalCount(totalCount).build();
+        return PageResponseDTO.<BlackListDTO>withAll()
+                .dtoList(dtoList)
+                .pageRequestDTO(searchDTO)
+                .totalCount(result.getTotalElements())
+                .build();
+    }
+    
+    @Override
+    public void modify(BlackListDTO blackListDTO) {
+        BlackList blackList = repository.findById(blackListDTO.getBlId())
+                .orElseThrow(() -> new RuntimeException("수정 대상을 찾을 수 없습니다."));
 
-	return responseDTO;
-	}
-	
-	@Override
-	public void modify(BlackListDTO blackListDTO) {
-		Optional<BlackList> result = repository.findById(blackListDTO.getBlId());
-		BlackList blackList = result.orElseThrow();
+        // 수동 필드 업데이트 (null 방지)
+        blackList.setReason(blackListDTO.getReason());
+        if(blackListDTO.getAdminId() != null) blackList.setAdminId(blackListDTO.getAdminId());
+        if(blackListDTO.getStatus() != null) blackList.setStatus(blackListDTO.getStatus());
+        blackList.setEndDate(blackListDTO.getEndDate());
 
-		blackList.changeEndDate(blackListDTO.getEndDate());
-
-	    repository.save(blackList);
-	}
-	
-	@Override
-	public void remove(Long BlId) {
-		Optional<BlackList> result = repository.findById(BlId);
-		BlackList blackList = result.orElseThrow();
-		
-		blackList.changeEnabled(0);
-
-		repository.save(blackList);
-	}
-	
+        repository.save(blackList);
+    }
+    
+    @Override
+    public void remove(Long blId) {
+        log.info("--- 블랙리스트 삭제(비활성화) 시도 --- ID: " + blId);
+        
+        BlackList blackList = repository.findById(blId)
+                .orElseThrow(() -> new RuntimeException("삭제할 대상이 없습니다."));
+        
+        // 실제로 삭제하지 않고 enabled를 0으로 변경 (Soft Delete)
+        blackList.setEnabled(0);
+        repository.save(blackList);
+    }
 }

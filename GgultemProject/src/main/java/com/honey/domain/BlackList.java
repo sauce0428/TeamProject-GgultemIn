@@ -31,7 +31,7 @@ public class BlackList extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BLACKLIST_SEQ_GEN")
 	private Long blId;
-	private String userId;
+	private String email;
 	private String reason;
 	private String adminId;
 	private String status; // 활성 상태 (Y/N)
@@ -55,8 +55,8 @@ public class BlackList extends BaseTimeEntity {
 		this.blId = blId;
 	}
 
-	public void setUserId(String userId) {
-		this.userId = userId;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public void setReason(String reason) {
