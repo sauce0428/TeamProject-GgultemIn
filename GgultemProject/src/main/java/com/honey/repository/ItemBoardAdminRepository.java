@@ -9,20 +9,19 @@ import org.springframework.data.repository.query.Param;
 
 import com.honey.domain.ItemBoard;
 
-public interface ItemBoardAdminRepository extends JpaRepository<ItemBoard, Long>{
+public interface ItemBoardAdminRepository extends JpaRepository<ItemBoard, Long> {
 
-	@Query("select i from ItemBoard i where enabled = 0")
+	@Query("select i from ItemBoard i where enabled = 1")
 	Page<ItemBoard> findAllList(Pageable pageable);
 
-	@EntityGraph(attributePaths = {"itemList"})
-	@Query("SELECT i FROM ItemBoard i WHERE i.enabled = 0 AND ("
-	        + "(:searchType = 'title' AND i.title LIKE %:keyword%) OR "
-	        + "(:searchType = 'writer' AND i.writer LIKE %:keyword%) OR "
-	        + "(:searchType = 'content' AND i.content LIKE %:keyword%) OR "
-	        + "(:searchType = 'category' AND i.category LIKE %:keyword%) OR "
-	        + "(:searchType = 'location' AND i.location LIKE %:keyword%) OR "
-	        + "(:searchType = 'all' AND (i.title LIKE %:keyword% OR i.writer LIKE %:keyword% OR i.content LIKE %:keyword% OR i.category LIKE %:keyword% OR i.location LIKE %:keyword%)) OR "
-	        + "((:searchType IS NULL OR :searchType = '') AND (i.title LIKE %:keyword% OR i.writer LIKE %:keyword% OR i.content LIKE %:keyword% OR i.category LIKE %:keyword% OR i.location LIKE %:keyword%))"
-	        + ")") 
-	Page<ItemBoard> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword, Pageable pageable);
+	@EntityGraph(attributePaths = { "itemList", "member" })
+	@Query("SELECT i FROM ItemBoard i LEFT JOIN i.member m " + "WHERE i.enabled = 1 AND ("
+			+ "(:searchType = 'title' AND i.title LIKE CONCAT('%', :keyword, '%')) OR "
+			+ "(:searchType = 'writer' AND m.nickname LIKE CONCAT('%', :keyword, '%')) OR "
+			+ "(:searchType = 'content' AND i.content LIKE CONCAT('%', :keyword, '%')) OR "
+			+ "(:searchType = 'all' AND (i.title LIKE CONCAT('%', :keyword, '%') OR m.nickname LIKE CONCAT('%', :keyword, '%'))) OR "
+			+ "(:searchType IS NULL OR :searchType = '' OR i.title LIKE CONCAT('%', :keyword, '%') OR m.nickname LIKE CONCAT('%', :keyword, '%'))"
+			+ ")")
+	Page<ItemBoard> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword,
+			Pageable pageable);
 }

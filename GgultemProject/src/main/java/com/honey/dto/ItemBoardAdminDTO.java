@@ -40,4 +40,5 @@ public class ItemBoardAdminDTO {
 	private String email;
 	private String phone;
 	private String pw;
+	private String nickname;
 }
