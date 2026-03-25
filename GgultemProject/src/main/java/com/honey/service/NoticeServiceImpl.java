@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.honey.domain.Member;
 import com.honey.domain.Notice;
@@ -57,7 +58,7 @@ public class NoticeServiceImpl implements NoticeService {
 			noticeDTO.setUploadFileNames(fileNameList);
 		} else {
 			// 공지사항에 이미지가 없을 경우 기본 이미지(예: no-image.jpg) 설정
-			noticeDTO.setUploadFileNames(List.of("default.jpg"));
+			noticeDTO.setUploadFileNames(List.of());
 		}
 
 		return noticeDTO;
@@ -98,34 +99,41 @@ public class NoticeServiceImpl implements NoticeService {
 
 	@Override
 	public void modify(NoticeDTO noticeDTO) {
-		Notice notice = noticeRepository.findById(noticeDTO.getNoticeId()).orElseThrow();
+	    // 1. 기존 데이터 가져오기
+	    Notice notice = noticeRepository.findById(noticeDTO.getNoticeId()).orElseThrow();
 
-		// 제목, 내용 수정
-		notice.changeTitle(noticeDTO.getTitle());
-		notice.changeContent(noticeDTO.getContent());
-		notice.changePinned(noticeDTO.getIsPinned()); //고정상태 변경 메서드 호출.
+	    // 2. 제목, 내용, 고정 상태 등 기본 정보 수정
+	    notice.changeTitle(noticeDTO.getTitle());
+	    notice.changeContent(noticeDTO.getContent());
+	    notice.changePinned(noticeDTO.getIsPinned());
 
-		// 이미지 교체 로직 (Member의 updateToThumbnail 참고)
-		// 기존 파일 삭제
-		List<String> oldFileNames = notice.getNoticeImage().stream().map(img -> img.getFileName())
-				.collect(Collectors.toList());
+	    // 3. 이미지 처리 로직 (핵심!)
+	    List<MultipartFile> files = noticeDTO.getFiles();
 
-		if (oldFileNames != null && !oldFileNames.isEmpty()) {
-			fileUtil.deleteFiles(oldFileNames);
-		}
+	    // 새 파일이 업로드된 경우에만 기존 이미지를 지우고 새로 등록합니다.
+	    if (files != null && !files.isEmpty() && !files.get(0).isEmpty()) {
+	        
+	        // (1) 물리적 파일 삭제 (CustomFileUtil 활용)
+	        List<String> oldFileNames = notice.getNoticeImage().stream()
+	                .map(img -> img.getFileName())
+	                .collect(Collectors.toList());
+	        if (oldFileNames != null && !oldFileNames.isEmpty()) {
+	            fileUtil.deleteFiles(oldFileNames);
+	        }
 
-		// [중요] 기존 리스트를 비우고
-		notice.clearList();
+	        // (2) DB 리스트 비우기
+	        notice.clearList();
 
-		// [중요] 새 파일명을 추가할 때 noticeImage 리스트 자체가 새로 할당되거나
-		// 제대로 인지되도록 addImageString을 호출
-		List<String> newFileNames = noticeDTO.getUploadFileNames();
-		if (newFileNames != null && !newFileNames.isEmpty()) {
-			newFileNames.forEach(notice::addImageString);
-		}
+	        // (3) 새 파일 저장 및 이름 추가
+	        List<String> newFileNames = fileUtil.saveFiles(files);
+	        if (newFileNames != null && !newFileNames.isEmpty()) {
+	            newFileNames.forEach(notice::addImageString);
+	        }
+	    } 
+	    // 만약 새 파일이 없다면 아무 것도 하지 않음. (기존 데이터 유지)
 
-		// 4. 명시적으로 save 호출 (Dirty Checking에만 의존하지 않음)
-		noticeRepository.save(notice);
+	    // 4. 저장
+	    noticeRepository.save(notice);
 	}
 
 	@Override
@@ -185,7 +193,7 @@ public class NoticeServiceImpl implements NoticeService {
 
 			// 이미지 없을 때의 기본 처리 (기존 코드의 default.jpg 로직 유지 가능)
 			if (fileNames.isEmpty()) {
-				dto.setUploadFileNames(List.of("default.jpg"));
+				dto.setUploadFileNames(List.of());
 			} else {
 				dto.setUploadFileNames(fileNames);
 			}
