@@ -67,32 +67,23 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 	}
 
 	private ItemBoard dtoToEntity(ItemBoardDTO itemBoardDTO) {
-	    Member member = memberRepository.findById(itemBoardDTO.getEmail())
-	            .orElseThrow(() -> new IllegalArgumentException("DB에 해당 이메일이 존재하지 않습니다: " + itemBoardDTO.getEmail()));
+		Member member = memberRepository.findById(itemBoardDTO.getEmail())
+				.orElseThrow(() -> new IllegalArgumentException("DB에 해당 이메일이 존재하지 않습니다: " + itemBoardDTO.getEmail()));
 
-	    // builder 부분
-	    ItemBoard itemBoard = ItemBoard.builder()
-	            .title(itemBoardDTO.getTitle())
-	            .writer(itemBoardDTO.getWriter())
-	            .price(itemBoardDTO.getPrice())
-	            .content(itemBoardDTO.getContent())
-	            .category(itemBoardDTO.getCategory())
-	            .location(itemBoardDTO.getLocation())
-	            .itemUrl(itemBoardDTO.getItemUrl())
-	            .member(member) 
-	            .pictureUrl(itemBoardDTO.getPictureUrl())
-	            .enabled(1)
-	            .status("false") 
-	            .build();
-	    
-	    List<String> uploadFileNames = itemBoardDTO.getUploadFileNames();
-	    
-	    if (uploadFileNames != null && !uploadFileNames.isEmpty()) {
-	        uploadFileNames.forEach(fileName -> {
-	            itemBoard.addImageString(fileName); 
-	        });
-	    }
-	    return itemBoard;
+		// builder 부분
+		ItemBoard itemBoard = ItemBoard.builder().title(itemBoardDTO.getTitle()).writer(itemBoardDTO.getWriter())
+				.price(itemBoardDTO.getPrice()).content(itemBoardDTO.getContent()).category(itemBoardDTO.getCategory())
+				.location(itemBoardDTO.getLocation()).itemUrl(itemBoardDTO.getItemUrl()).member(member)
+				.pictureUrl(itemBoardDTO.getPictureUrl()).enabled(1).status("false").build();
+
+		List<String> uploadFileNames = itemBoardDTO.getUploadFileNames();
+
+		if (uploadFileNames != null && !uploadFileNames.isEmpty()) {
+			uploadFileNames.forEach(fileName -> {
+				itemBoard.addImageString(fileName);
+			});
+		}
+		return itemBoard;
 	}
 
 	// 리스트 검색
@@ -100,8 +91,8 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 	public PageResponseDTO<ItemBoardDTO> list(ItemBoardSearchDTO searchDTO) {
 
 		// 1. 페이징 설정 (페이지 번호는 0부터 시작하므로 -1 처리)
-		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(), Sort.by("regDate").descending() 
-		);
+		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(),
+				Sort.by("regDate").descending());
 
 		// 2. 파라미터 방어 코드 (프론트에서 null이 넘어올 경우를 대비한 기본값 설정)
 		String searchType = (searchDTO.getSearchType() == null || searchDTO.getSearchType().isEmpty()) ? "all"
@@ -149,18 +140,13 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 
 	@Override
 	public void modify(ItemBoardDTO itemBoardDTO) {
-		Optional<ItemBoard> result = itemBoardRepository.findById(itemBoardDTO.getId());
-		ItemBoard itemBoard = result.orElseThrow();
+		ItemBoard itemBoard = itemBoardRepository.findById(itemBoardDTO.getId())
+				.orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
 
 		itemBoard.clearList();
-
 		List<String> fileNames = itemBoardDTO.getUploadFileNames();
-
-		// 3. 다시 하나씩 추가 (이 과정이 없으면 DB에서 삭제됩니다)
 		if (fileNames != null && !fileNames.isEmpty()) {
-			fileNames.forEach(name -> {
-				itemBoard.addImageString(name);
-			});
+			fileNames.forEach(name -> itemBoard.addImageString(name));
 		}
 
 		itemBoard.changeTitle(itemBoardDTO.getTitle());
@@ -169,17 +155,17 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 		itemBoard.changeCategory(itemBoardDTO.getCategory());
 		itemBoard.changeLocation(itemBoardDTO.getLocation());
 
-		// 판매 상태(판매중, 판매완료)
-		if (itemBoardDTO.getStatus() != null && !itemBoardDTO.getStatus().isEmpty()) {
-			itemBoard.changeStatus(itemBoardDTO.getStatus());
+		if (itemBoardDTO.getStatus() != null) {
+			String status = itemBoardDTO.getStatus().trim();
+			itemBoard.changeStatus(status);
+
+			if ("판매완료".equals(status)) {
+				itemBoard.changeEnabled(2);
+			} else if ("판매중".equals(status)) {
+				itemBoard.changeEnabled(1);
+			}
 		}
 
-		List<String> uploadFileNames = itemBoardDTO.getUploadFileNames();
-		if (uploadFileNames != null && uploadFileNames.isEmpty()) {
-			uploadFileNames.stream().forEach(uploadName -> {
-				itemBoard.addImageString(uploadName);
-			});
-		}
 		itemBoardRepository.save(itemBoard);
 	}
 

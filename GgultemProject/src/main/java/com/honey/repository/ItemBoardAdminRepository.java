@@ -11,11 +11,11 @@ import com.honey.domain.ItemBoard;
 
 public interface ItemBoardAdminRepository extends JpaRepository<ItemBoard, Long> {
 
-	@Query("select i from ItemBoard i where enabled = 1")
-	Page<ItemBoard> findAllList(Pageable pageable);
+	@Query("select i from ItemBoard i where (:enabled is null or i.enabled = :enabled)")
+	Page<ItemBoard> findAllList(@Param("enabled") Integer enabled, Pageable pageable);
 
 	@EntityGraph(attributePaths = { "itemList", "member" })
-	@Query("SELECT i FROM ItemBoard i LEFT JOIN i.member m " + "WHERE i.enabled = 1 AND ("
+	@Query("SELECT i FROM ItemBoard i LEFT JOIN i.member m " + "WHERE (:enabled is null or i.enabled = :enabled) AND ("
 			+ "(:searchType = 'title' AND i.title LIKE CONCAT('%', :keyword, '%')) OR "
 			+ "(:searchType = 'writer' AND m.nickname LIKE CONCAT('%', :keyword, '%')) OR "
 			+ "(:searchType = 'content' AND i.content LIKE CONCAT('%', :keyword, '%')) OR "
@@ -23,5 +23,9 @@ public interface ItemBoardAdminRepository extends JpaRepository<ItemBoard, Long>
 			+ "(:searchType IS NULL OR :searchType = '' OR i.title LIKE CONCAT('%', :keyword, '%') OR m.nickname LIKE CONCAT('%', :keyword, '%'))"
 			+ ")")
 	Page<ItemBoard> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword,
+			@Param("enabled") Integer enabled, // int -> Integer
 			Pageable pageable);
+
+	@Query("select i from ItemBoard i where i.enabled = :enabled")
+	Page<ItemBoard> findAllByEnabled(@Param("enabled") int enabled, Pageable pageable);
 }

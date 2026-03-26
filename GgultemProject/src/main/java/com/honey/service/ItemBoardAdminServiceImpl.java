@@ -15,8 +15,8 @@ import com.honey.domain.ItemBoard;
 import com.honey.domain.Member;
 import com.honey.dto.ItemBoardAdminDTO;
 import com.honey.dto.ItemBoardDTO;
+import com.honey.dto.ItemBoardSearchDTO;
 import com.honey.dto.PageResponseDTO;
-import com.honey.dto.SearchDTO;
 import com.honey.repository.ItemBoardAdminRepository;
 import com.honey.repository.ItemBoardRepository;
 import com.honey.repository.MemberRepository;
@@ -94,10 +94,8 @@ public class ItemBoardAdminServiceImpl implements ItemBoardAdminService {
 	}
 
 	@Override
-	public PageResponseDTO<ItemBoardAdminDTO> list(SearchDTO searchDTO) {
-		
-		log.info(">>> 리액트에서 넘어온 값 - 타입: [{}], 키워드: [{}]", 
-	             searchDTO.getSearchType(), searchDTO.getKeyword());
+	public PageResponseDTO<ItemBoardAdminDTO> list(ItemBoardSearchDTO searchDTO) {
+
 		// 1. 페이지네이션 설정
 		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(), Sort.by("id").descending());
 
@@ -105,10 +103,10 @@ public class ItemBoardAdminServiceImpl implements ItemBoardAdminService {
 
 		// 2. 검색 조건에 따른 데이터 조회
 		if (searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
-			result = itemBoardAdminRepository.searchByCondition(searchDTO.getSearchType(), searchDTO.getKeyword(),
+			result = itemBoardAdminRepository.searchByCondition(searchDTO.getSearchType(), searchDTO.getKeyword(), searchDTO.getEnabled(),
 					pageable);
 		} else {
-			result = itemBoardAdminRepository.findAllList(pageable);
+			result = itemBoardAdminRepository.findAllList(searchDTO.getEnabled(), pageable);
 		}
 
 		// 3. DTO 변환 (중요: Member 정보 수동 매핑)
@@ -136,13 +134,16 @@ public class ItemBoardAdminServiceImpl implements ItemBoardAdminService {
 
 	@Override
 	public void remove(Long id) {
-		Optional<ItemBoard> result = itemBoardAdminRepository.findById(id);
-		ItemBoard itemBoard = result.orElseThrow();
-
+		ItemBoard itemBoard = itemBoardAdminRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("삭제할 상품을 찾을 수 없습니다."));
 		itemBoard.changeEnabled(0);
+	}
 
-		itemBoardAdminRepository.save(itemBoard);
-
+	@Override
+	public void soldOut(Long id) {
+		ItemBoard itemBoard = itemBoardAdminRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("판매 완료 처리할 상품을 찾을 수 없습니다."));
+		itemBoard.changeEnabled(2);
 	}
 
 }

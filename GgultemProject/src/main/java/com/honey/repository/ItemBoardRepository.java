@@ -16,6 +16,7 @@ public interface ItemBoardRepository extends JpaRepository<ItemBoard, Long> {
 	@Query("select i from ItemBoard i where enabled = 1")
 	Page<ItemBoard> findAllList(Pageable pageable);
 
+	// 검색 조건
 	@EntityGraph(attributePaths = { "itemList" })
 	@Query("SELECT i FROM ItemBoard i WHERE i.enabled = 0 AND ( "
 			+ "(:searchType = 'title' AND i.title LIKE %:keyword%) OR "
@@ -30,6 +31,7 @@ public interface ItemBoardRepository extends JpaRepository<ItemBoard, Long> {
 	Page<ItemBoard> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword,
 			Pageable pageable);
 
+	// 필터링 조건
 	@EntityGraph(attributePaths = { "itemList" })
 	@Query("""
 			SELECT i FROM ItemBoard i

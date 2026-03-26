@@ -3,19 +3,17 @@ package com.honey.controller;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.honey.dto.ItemBoardAdminDTO;
 import com.honey.dto.ItemBoardDTO;
+import com.honey.dto.ItemBoardSearchDTO;
 import com.honey.dto.PageResponseDTO;
-import com.honey.dto.SearchDTO;
 import com.honey.service.ItemBoardAdminService;
 import com.honey.util.CustomFileUtil;
 
@@ -30,15 +28,15 @@ public class ItemBoardAdminController {
 
 	private final ItemBoardAdminService service;
 	private final CustomFileUtil fileUtil;
-	
+
 	@GetMapping("/{id}")
 	public ItemBoardAdminDTO getItemBoardAdmin(@PathVariable(name = "id") Long id) {
 		return service.get(id);
 	}
-	
+
 	@PostMapping("/")
-    public Map<String, Long> register(ItemBoardDTO dto) {
-        List<MultipartFile> files = dto.getFiles();
+	public Map<String, Long> register(ItemBoardDTO dto) {
+		List<MultipartFile> files = dto.getFiles();
 
 		// 2. 파일 유틸이 일을 제대로 했는지 확인
 		List<String> uploadFileNames = fileUtil.saveFiles(files);
@@ -46,21 +44,25 @@ public class ItemBoardAdminController {
 		// 3. DTO에 제대로 세팅했는지 확인
 		dto.setUploadFileNames(uploadFileNames);
 		Long id = service.register(dto);
-        return Map.of("id", id);
-    }
-	
+		return Map.of("id", id);
+	}
+
 	@GetMapping("/list")
-	public PageResponseDTO<ItemBoardAdminDTO> list(SearchDTO searchDTO){
+	public PageResponseDTO<ItemBoardAdminDTO> list(ItemBoardSearchDTO searchDTO) {
 		return service.list(searchDTO);
 	}
-	
+
 	@GetMapping("/delete/{id}")
-	public Map<String,String> remove(@PathVariable(name = "id")Long id){
-		List<String> oldFileNames = service.get(id).getUploadFileNames();
+	public Map<String, String> remove(@PathVariable(name = "id") Long id) {
 		service.remove(id);
-		
-		fileUtil.deleteFiles(oldFileNames);
-		return Map.of("RESULT","SUCCESS");
+
+		return Map.of("RESULT", "SUCCESS");
 	}
-	
+	@GetMapping("/soldOut/{id}")
+	public Map<String, String> soldOut(@PathVariable(name = "id") Long id) {
+		service.soldOut(id);
+		
+		return Map.of("RESULT", "SUCCESS");
+	}
+
 }

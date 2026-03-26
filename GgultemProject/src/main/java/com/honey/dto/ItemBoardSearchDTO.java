@@ -22,4 +22,6 @@ public class ItemBoardSearchDTO extends PageRequestDTO {
     
     @Builder.Default
     private String location = "all";
+    
+    private Integer enabled;
 }
