@@ -76,7 +76,6 @@ public class BoardReplyServiceImpl implements BoardReplyService {
         BoardReply reply = boardReplyRepository.findById(dto.getReplyNo())
                 .orElseThrow(() -> new RuntimeException("댓글 없음"));
 
-        // Entity 방식대로 수정
         if (dto.getContent() != null && !dto.getContent().isEmpty()) {
             reply.changeContent(dto.getContent());
         }
@@ -106,15 +105,19 @@ public class BoardReplyServiceImpl implements BoardReplyService {
                 Sort.by("replyNo").descending()
         );
 
+        // 🔥 keyword 처리
         String keyword = searchDTO.getKeyword();
-        Integer enabled = Integer.parseInt(searchDTO.getEnabled());
-
-        // 🔥 빈값 방어 (이거 중요)
         if (keyword != null && keyword.trim().isEmpty()) {
             keyword = null;
         }
 
-        // 🔥 이제 이거 한줄로 끝
+        // 🔥 enabled null 방어 (핵심 수정)
+        Integer enabled = null;
+        if (searchDTO.getEnabled() != null && !searchDTO.getEnabled().isEmpty()) {
+            enabled = Integer.parseInt(searchDTO.getEnabled());
+        }
+
+        // 🔥 검색 실행
         Page<BoardReply> result =
                 boardReplyRepository.searchAll(enabled, keyword, pageable);
 
