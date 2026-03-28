@@ -87,6 +87,11 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 		if (path.startsWith("/api/member/login")) {
 	        return true;
 	    }
+		// 웹소켓 연결 경로는 토큰 체크에서 제외
+        // (연결 핸드셰이크 시점에 토큰을 검사하기 어렵기 때문)
+        if (path.startsWith("/ws")) {
+            return true;
+        }
 		return false;
 	}
 

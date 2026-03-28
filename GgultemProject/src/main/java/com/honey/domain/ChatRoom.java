@@ -1,5 +1,6 @@
 package com.honey.domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -38,13 +37,12 @@ public class ChatRoom extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CHATROOM_SEQ_GEN")
 	private Long roomId;
 	
-	@ManyToOne
-	@JoinColumn(name = "ITEMBOARD_ID") // 실제 DB 테이블의 FK 컬럼명을 지정
-	private ItemBoard itemboard;
+	private Long itemId;   // 관련 상품 ID
+    private String sellerId; // 판매자 닉네임/ID
+    private String buyerId;  // 구매자 닉네임/ID
 	private String roomName;
-	private String buyerId;
-	private String sellerId;
 	private Integer enabled; // 1:활성화, 0:삭제
+	private LocalDateTime dtdDate;
 	
 	@ElementCollection(fetch = FetchType.LAZY)
 	@Column(name = "chat_messages")
@@ -53,6 +51,9 @@ public class ChatRoom extends BaseTimeEntity {
 	
 	public void changeEnabled(int enabled) {
 		this.enabled = enabled;
+		if(enabled == 0) {
+			this.dtdDate = LocalDateTime.now();
+		}
 	}
 	
 	public void changeRoomName(String roomName) {

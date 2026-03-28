@@ -42,18 +42,30 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	
 	@Override
 	public Long register(ChatRoomDTO chatRoomDTO) {
-		ChatRoom chatRoom = modelMapper.map(chatRoomDTO, ChatRoom.class);
-		
-		chatRoom.changeEnabled(1);
-		
-		return repository.save(chatRoom).getRoomId();
+		// 1. 이미 존재하는 방인지 확인 (구매자, 판매자, 상품번호 조합)
+	    Optional<ChatRoom> existingRoom = repository.findByBuyerIdAndSellerIdAndItemId(
+	        chatRoomDTO.getBuyerId(), 
+	        chatRoomDTO.getSellerId(), 
+	        chatRoomDTO.getItemId()
+	    );
+
+	    if (existingRoom.isPresent()) {
+	        log.info("기존 채팅방으로 연결합니다. ID: {}", existingRoom.get().getRoomId());
+	        return existingRoom.get().getRoomId();
+	    }
+
+	    // 2. 없는 경우에만 새로 생성
+	    ChatRoom chatRoom = modelMapper.map(chatRoomDTO, ChatRoom.class);
+	    chatRoom.changeEnabled(1);
+	    return repository.save(chatRoom).getRoomId();
 	}
 
 	@Override
 	public PageResponseDTO<ChatRoomDTO> list(SearchDTO searchDTO) {
 		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
 				searchDTO.getSize(), Sort.by("roomId").descending());
-		Page<ChatRoom> result = repository.findAllByEnabled(pageable);
+		
+		Page<ChatRoom> result = null;
 		if(searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
         	result = repository.searchByCondition(
 					searchDTO.getSearchType(),

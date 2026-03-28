@@ -1,5 +1,7 @@
 package com.honey.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -21,6 +23,9 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	       "  (:searchType = 'all' AND (b.roomName LIKE %:keyword% OR b.buyerId LIKE %:keyword% OR b.sellerId LIKE %:keyword%)) ) " +
 	       "OR " + // searchType이 없거나 비었을 때의 처리
 	       "( (:searchType IS NULL OR :searchType = '') AND (b.roomName LIKE %:keyword% OR b.buyerId LIKE %:keyword% OR b.sellerId LIKE %:keyword%) )")
-	Page<ChatRoom> searchByCondition(@Param("searchType")String searchType,@Param("keyword") String keyword, Pageable pageable);
+	Page<ChatRoom> searchByCondition(@Param("searchType")String searchType, @Param("keyword") String keyword, Pageable pageable);
+	
+	@Query("SELECT c FROM ChatRoom c WHERE c.buyerId = :buyerId AND c.sellerId = :sellerId AND c.itemId = :itemId")
+	Optional<ChatRoom> findByBuyerIdAndSellerIdAndItemId(String buyerId, String sellerId, Long itemId);
 
 }
