@@ -85,6 +85,9 @@ public class CustomSecurityConfig {
 	    // 3. 허용할 헤더 (Authorization 외에 모든 헤더를 허용하는 것이 속 편합니다)
 	    configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
 	    
+		// 웹소켓 연결 시 필요한 다양한 헤더를 수용하도록 "*"로 설정하거나 더 확장.
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+	    
 	    // 4. 자격 증명 허용
 	    configuration.setAllowCredentials(true);
 
