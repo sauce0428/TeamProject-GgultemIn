@@ -14,6 +14,7 @@ public class ItemBoardSearchDTO extends PageRequestDTO {
 	
 	private String searchType;
 	private String keyword;
+	private String email;
 	@Builder.Default
     private String status = "all";
     

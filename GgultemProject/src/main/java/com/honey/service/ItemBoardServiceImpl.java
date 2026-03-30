@@ -104,10 +104,12 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 				: searchDTO.getCategory();
 		String location = (searchDTO.getLocation() == null || searchDTO.getLocation().isEmpty()) ? "all"
 				: searchDTO.getLocation();
+		String email = (searchDTO.getEmail() == null || searchDTO.getEmail().isEmpty()) ? "all"
+				: searchDTO.getEmail();
 
 		// 3. 레포지토리 호출 (수정된 Repository의 searchWithFilter 쿼리 사용)
 		Page<ItemBoard> result = itemBoardRepository.searchWithFilter(searchType, keyword, status, category, location,
-				pageable);
+				email,pageable);
 
 		// 4. 엔티티(Entity) 리스트를 DTO 리스트로 변환
 		List<ItemBoardDTO> dtoList = result.getContent().stream().map(itemBoard -> {
