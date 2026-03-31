@@ -101,7 +101,7 @@ public class MemberServiceImpl implements MemberService {
 		member.changePw(passwordEncoder.encode(memberDTO.getPw())); // 암호화
 		member.changeStatus(1);
 		member.addRole(MemberRole.MEMBER);
-		
+
 		List<String> newFileNames = memberDTO.getUploadFileNames();
 		if (newFileNames != null && !newFileNames.isEmpty()) {
 			newFileNames.forEach(fileName -> {
@@ -142,10 +142,16 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
+	@Transactional
 	public void remove(String email) {
-		Member member = memberRepository.findById(email).orElseThrow();
+		Member member = memberRepository.findById(email)
+				.orElseThrow(() -> new RuntimeException("해당 회원을 찾을 수 없습니다. 🐝"));
 
 		member.changeStatus(0);
+		member.changeNickName("탈퇴회원_" + System.currentTimeMillis());
+
+		member.changePhone(null);
+		member.changeBizMoney(0L);
 
 		List<String> oldFileNames = member.getThumbnailList().stream().map(thumbnail -> thumbnail.getFileName())
 				.collect(Collectors.toList());
@@ -157,23 +163,27 @@ public class MemberServiceImpl implements MemberService {
 		member.clearList();
 
 		memberRepository.save(member);
+
+		log.info("회원 탈퇴 처리 완료: " + email);
 	}
 
 	@Override
 	public PageResponseDTO<MemberDTO> list(SearchDTO searchDTO) {
 		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
 				searchDTO.getSize(), Sort.by("regDate").descending());
-		
+
 		log.info(searchDTO.toString());
 
 		Page<Member> result = null;
 		if (searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
-			if(searchDTO.getEnabled() != null) {
-				result = memberRepository.searchByConditionFilter(searchDTO.getSearchType(), searchDTO.getKeyword(), Integer.parseInt(searchDTO.getEnabled()), pageable);
+			if (searchDTO.getEnabled() != null) {
+				result = memberRepository.searchByConditionFilter(searchDTO.getSearchType(), searchDTO.getKeyword(),
+						Integer.parseInt(searchDTO.getEnabled()), pageable);
 			} else {
-				result = memberRepository.searchByCondition(searchDTO.getSearchType(), searchDTO.getKeyword(), pageable);
+				result = memberRepository.searchByCondition(searchDTO.getSearchType(), searchDTO.getKeyword(),
+						pageable);
 			}
-		} else if(searchDTO.getEnabled() != null) {
+		} else if (searchDTO.getEnabled() != null) {
 			result = memberRepository.findAllFilter(pageable, Integer.parseInt(searchDTO.getEnabled()));
 		} else {
 			result = memberRepository.findAll(pageable);
@@ -202,7 +212,7 @@ public class MemberServiceImpl implements MemberService {
 
 		PageResponseDTO<MemberDTO> responseDTO = PageResponseDTO.<MemberDTO>withAll().dtoList(dtoList)
 				.pageRequestDTO(searchDTO).totalCount(totalCount).build();
-		
+
 		log.info(responseDTO.toString());
 
 		return responseDTO;
@@ -244,7 +254,18 @@ public class MemberServiceImpl implements MemberService {
 		Optional<Member> result = memberRepository.findById(email);
 
 		if (result.isPresent()) {
-			// 이미 가입된 회원이면 바로 DTO 변환 (로그인 처리)
+			Member member = result.get();
+
+			if (member.getEnabled() == 0) {
+				log.info("탈퇴한 회원입니다. 로그인을 차단합니다: " + email);
+				// 에러를 던져서 컨트롤러가 리액트에 에러를 보내게 합니다.
+				throw new RuntimeException("DELETED_USER");
+			} else if (member.getEnabled() == 2 || member.getEnabled() == 3 || member.getEnabled() == 4) {
+				log.info("정지된 회원입니다. 로그인을 차단합니다: " + email);
+				// 에러를 던져서 컨트롤러가 리액트에 에러를 보내게 합니다.
+				throw new RuntimeException("STOP_USER");
+			}
+			// 활성화된 회원이면 바로 DTO 변환 (로그인 처리)
 			return entityToDTO(result.get());
 		}
 
@@ -381,6 +402,17 @@ public class MemberServiceImpl implements MemberService {
 		Optional<Member> result = memberRepository.findById("google_" + email);
 
 		if (result.isPresent()) {
+			Member member = result.get();
+
+			if (member.getEnabled() == 0) {
+				log.info("탈퇴한 구글 회원 차단: " + email);
+				throw new RuntimeException("DELETED_USER");
+			} else if (member.getEnabled() == 2 || member.getEnabled() == 3 || member.getEnabled() == 4) {
+				log.info("정지된 회원입니다. 로그인을 차단합니다: " + email);
+				// 에러를 던져서 컨트롤러가 리액트에 에러를 보내게 합니다.
+				throw new RuntimeException("STOP_USER");
+			}
+
 			return entityToDTO(result.get());
 		}
 
@@ -475,6 +507,16 @@ public class MemberServiceImpl implements MemberService {
 		member.changeStatus(1);
 
 		return member;
+	}
+
+	@Override
+	public boolean existsByEmail(String email) {
+		return memberRepository.existsByEmail(email);
+	}
+	
+	@Override
+	public boolean existsByNickname(String nickname) {
+		return memberRepository.existsByNickname(nickname);
 	}
 
 }

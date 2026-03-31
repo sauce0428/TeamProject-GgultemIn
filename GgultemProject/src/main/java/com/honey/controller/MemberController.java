@@ -100,5 +100,17 @@ public class MemberController {
 		service.remove(email);
 		return Map.of("RESULT", "SUCCESS");
 	}
+	
+	@GetMapping("/checkEmail")
+	public Map<String, Boolean> checkEmail(@RequestParam("email") String email) {
+	    boolean isAvailable = !service.existsByEmail(email); 
+	    return Map.of("result", isAvailable);
+	}
+	
+	@GetMapping("/checkNickname")
+	public Map<String, Boolean> checkNickname(@RequestParam("nickname") String nickname) {
+		boolean isAvailable = !service.existsByNickname(nickname); 
+		return Map.of("result", isAvailable);
+	}
 
 }

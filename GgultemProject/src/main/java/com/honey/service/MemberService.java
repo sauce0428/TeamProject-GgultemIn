@@ -23,4 +23,8 @@ public interface MemberService {
 
 	public MemberDTO getMemberWithGoogle(String accessToken);
 
+	public boolean existsByEmail(String email);
+	
+	public boolean existsByNickname(String nickname);
+
 }
