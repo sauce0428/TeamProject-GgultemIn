@@ -48,6 +48,8 @@ public class NoticeServiceImpl implements NoticeService {
 
 		// 2. ModelMapper를 이용해 엔티티의 기본 필드를 DTO로 복사
 		NoticeDTO noticeDTO = modelMapper.map(notice, NoticeDTO.class);
+		
+		noticeDTO.setMemberEmail(notice.getMember().getEmail());
 
 		// 3. Notice 내부에 저장된 이미지 객체(NoticeImage) 리스트에서 파일명(String)만 추출
 		List<String> fileNameList = notice.getNoticeImage().stream().map(image -> image.getFileName())
@@ -60,6 +62,8 @@ public class NoticeServiceImpl implements NoticeService {
 			// 공지사항에 이미지가 없을 경우 기본 이미지(예: no-image.jpg) 설정
 			noticeDTO.setUploadFileNames(List.of());
 		}
+		
+		log.info("내가 뽑아온 noticeDTO 값 : " + noticeDTO);
 
 		return noticeDTO;
 	}
