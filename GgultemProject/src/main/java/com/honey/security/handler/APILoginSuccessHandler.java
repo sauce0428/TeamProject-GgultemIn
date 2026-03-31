@@ -3,11 +3,13 @@ package com.honey.security.handler;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import com.google.gson.Gson;
+import com.honey.domain.Member;
 import com.honey.dto.MemberDTO;
 import com.honey.util.JWTUtil;
 

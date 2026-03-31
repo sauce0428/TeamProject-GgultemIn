@@ -54,6 +54,10 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 	@Transactional 
 	@Query("update Member m set m.businessNumber = :bn, m.companyName = :cn where m.email = :email")
 	int businessRegister(@Param("bn") String bn, @Param("cn") String cn, @Param("email") String email);
-
 	
+	@Query("SELECT COUNT(m) > 0 FROM Member m WHERE m.email = :email")
+	boolean existsByEmail(@Param("email") String email);
+	
+	@Query("SELECT COUNT(m) > 0 FROM Member m WHERE m.nickname = :nickname")
+	boolean existsByNickname(@Param("nickname") String nickname);
 }
