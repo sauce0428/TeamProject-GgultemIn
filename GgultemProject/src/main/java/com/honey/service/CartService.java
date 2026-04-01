@@ -14,4 +14,6 @@ public interface CartService {
 
     public void remove(Long id);
 
+	public void removeByItemIdAndEmail(Long itemId, String email);
+
 }

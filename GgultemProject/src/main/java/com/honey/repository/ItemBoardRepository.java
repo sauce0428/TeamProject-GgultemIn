@@ -70,4 +70,6 @@ public interface ItemBoardRepository extends JpaRepository<ItemBoard, Long> {
 			""")
 	List<ItemBoard> findByBoundary(@Param("minLat") Double minLat, @Param("maxLat") Double maxLat,
 			@Param("minLng") Double minLng, @Param("maxLng") Double maxLng);
+	
+	
 }

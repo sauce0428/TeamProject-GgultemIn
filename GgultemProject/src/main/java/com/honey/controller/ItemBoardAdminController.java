@@ -52,7 +52,7 @@ public class ItemBoardAdminController {
 		return service.list(searchDTO);
 	}
 
-	@GetMapping("/delete/{id}")
+	@GetMapping("/remove/{id}")
 	public Map<String, String> remove(@PathVariable(name = "id") Long id) {
 		service.remove(id);
 

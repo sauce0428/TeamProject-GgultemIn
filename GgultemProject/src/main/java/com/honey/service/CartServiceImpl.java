@@ -87,4 +87,11 @@ public class CartServiceImpl implements CartService {
 		cartRepository.save(cart);
 	}
 
+	@Override
+	public void removeByItemIdAndEmail(Long itemId, String email) {
+		cartRepository.deleteByItemBoardIdAndMemberEmail(itemId, email);
+	}
+	
+	
+
 }

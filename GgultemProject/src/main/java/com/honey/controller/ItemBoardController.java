@@ -96,7 +96,7 @@ public class ItemBoardController {
 		return fileUtil.getFile(fileName);
 	}
 
-	@GetMapping("/delete/{id}")
+	@GetMapping("/remove/{id}")
 	public Map<String, String> remove(@PathVariable(name = "id") Long id) {
 		List<String> oldFileNames = itemBoardService.get(id).getUploadFileNames();
 		itemBoardService.remove(id);

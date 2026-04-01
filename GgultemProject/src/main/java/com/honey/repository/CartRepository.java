@@ -11,6 +11,12 @@ import com.honey.domain.Cart;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
+	// 리스트에서 장바구니 삭제(상품아이디, 사용자이메일)
+	void deleteByItemBoardIdAndMemberEmail(Long itemId, String email);
+
+	@Query("SELECT COUNT(c) > 0 FROM Cart c WHERE c.itemBoard.id = :itemId AND c.member.email = :email AND c.enabled = 1")
+    boolean existsByItemBoardIdAndMemberEmail(@Param("itemId") Long itemId, @Param("email") String email);
+	
 	@Query("select c from Cart c")
 	Page<Cart> findAllList(Pageable pageable, String memberEmail);
 

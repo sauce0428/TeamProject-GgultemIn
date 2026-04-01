@@ -16,6 +16,7 @@ import com.honey.domain.Member;
 import com.honey.dto.ItemBoardDTO;
 import com.honey.dto.ItemBoardSearchDTO;
 import com.honey.dto.PageResponseDTO;
+import com.honey.repository.CartRepository;
 import com.honey.repository.ItemBoardRepository;
 import com.honey.repository.MemberRepository;
 import com.honey.util.CustomFileUtil;
@@ -33,6 +34,7 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 	private final ModelMapper modelMapper;
 	private final ItemBoardRepository itemBoardRepository;
 	private final MemberRepository memberRepository;
+	private final CartRepository cartRepository;
 	private final CustomFileUtil fileUtil;
 
 	@Override
@@ -90,53 +92,49 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 	@Override
 	public PageResponseDTO<ItemBoardDTO> list(ItemBoardSearchDTO searchDTO) {
 
-		// 1. 페이징 설정 (페이지 번호는 0부터 시작하므로 -1 처리)
-		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(),
-				Sort.by("regDate").descending());
+	    Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(),
+	            Sort.by("regDate").descending());
 
-		// 2. 파라미터 방어 코드 (프론트에서 null이 넘어올 경우를 대비한 기본값 설정)
-		String searchType = (searchDTO.getSearchType() == null || searchDTO.getSearchType().isEmpty()) ? "all"
-				: searchDTO.getSearchType();
-		String keyword = (searchDTO.getKeyword() == null) ? "" : searchDTO.getKeyword();
-		String status = (searchDTO.getStatus() == null || searchDTO.getStatus().isEmpty()) ? "all"
-				: searchDTO.getStatus();
-		String category = (searchDTO.getCategory() == null || searchDTO.getCategory().isEmpty()) ? "all"
-				: searchDTO.getCategory();
-		String location = (searchDTO.getLocation() == null || searchDTO.getLocation().isEmpty()) ? "all"
-				: searchDTO.getLocation();
-		String email = (searchDTO.getEmail() == null || searchDTO.getEmail().isEmpty()) ? "all" : searchDTO.getEmail();
+	    // 기본값 설정 로직 (기존과 동일)
+	    String searchType = (searchDTO.getSearchType() == null || searchDTO.getSearchType().isEmpty()) ? "all" : searchDTO.getSearchType();
+	    String keyword = (searchDTO.getKeyword() == null) ? "" : searchDTO.getKeyword();
+	    String status = (searchDTO.getStatus() == null || searchDTO.getStatus().isEmpty()) ? "all" : searchDTO.getStatus();
+	    String category = (searchDTO.getCategory() == null || searchDTO.getCategory().isEmpty()) ? "all" : searchDTO.getCategory();
+	    String location = (searchDTO.getLocation() == null || searchDTO.getLocation().isEmpty()) ? "all" : searchDTO.getLocation();
+	    
+	    // ★ 주의: 검색 조건의 email과 로그인한 사용자의 email을 구분해야 할 수 있지만, 
+	    // 여기서는 searchDTO.getEmail()을 로그인한 사용자의 이메일로 간주합니다.
+	    String currentUserEmail = searchDTO.getEmail(); 
 
-		// 3. 레포지토리 호출 (수정된 Repository의 searchWithFilter 쿼리 사용)
-		Page<ItemBoard> result = itemBoardRepository.searchWithFilter(searchType, keyword, status, category, location,
-				email, pageable);
+	    Page<ItemBoard> result = itemBoardRepository.searchWithFilter(searchType, keyword, status, category, location, "all", pageable);
 
-		// 4. 엔티티(Entity) 리스트를 DTO 리스트로 변환
-		List<ItemBoardDTO> dtoList = result.getContent().stream().map(itemBoard -> {
+	    List<ItemBoardDTO> dtoList = result.getContent().stream().map(itemBoard -> {
+	        ItemBoardDTO dto = modelMapper.map(itemBoard, ItemBoardDTO.class);
 
-			// ModelMapper를 이용한 기본 필드 복사
-			ItemBoardDTO dto = modelMapper.map(itemBoard, ItemBoardDTO.class);
+	        // 1. 이미지 처리 (기존 로직)
+	        List<String> fileNameList = itemBoard.getItemList().stream().map(itemImage -> itemImage.getFileName()).collect(Collectors.toList());
+	        dto.setUploadFileNames(fileNameList.isEmpty() ? List.of("default.jpg") : fileNameList);
 
-			// 이미지 파일 리스트 처리
-			List<String> fileNameList = itemBoard.getItemList().stream().map(itemImage -> itemImage.getFileName())
-					.collect(Collectors.toList());
+	        // 2. ★ 별표 유지 핵심 로직 추가 ★
+	        // 현재 로그인한 이메일이 있고, 장바구니 레파지토리에서 해당 아이템과 이메일로 데이터가 존재하는지 확인
+	        if (currentUserEmail != null && !currentUserEmail.equals("all") && !currentUserEmail.isEmpty()) {
+	            // CartRepository에 이 메서드가 있어야 합니다 (아래 2번 참고)
+	            boolean isExist = cartRepository.existsByItemBoardIdAndMemberEmail(itemBoard.getId(), currentUserEmail);
+	            dto.setFavorite(isExist); 
+	        } else {
+	            dto.setFavorite(false);
+	        }
 
-			// 이미지가 없을 경우 디폴트 이미지 설정
-			if (fileNameList == null || fileNameList.isEmpty()) {
-				dto.setUploadFileNames(List.of("default.jpg"));
-			} else {
-				dto.setUploadFileNames(fileNameList);
-			}
+	        return dto;
+	    }).collect(Collectors.toList());
 
-			return dto;
+	    long totalCount = result.getTotalElements();
 
-		}).collect(Collectors.toList());
-
-		// 5. 전체 데이터 개수 추출
-		long totalCount = result.getTotalElements();
-
-		// 6. PageResponseDTO 구성하여 반환
-		return PageResponseDTO.<ItemBoardDTO>withAll().dtoList(dtoList).pageRequestDTO(searchDTO).totalCount(totalCount)
-				.build();
+	    return PageResponseDTO.<ItemBoardDTO>withAll()
+	            .dtoList(dtoList)
+	            .pageRequestDTO(searchDTO)
+	            .totalCount(totalCount)
+	            .build();
 	}
 
 	@Override
