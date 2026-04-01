@@ -28,6 +28,8 @@ public class BoardDTO {
 	private String writer;
 
 	private String content;
+	
+	private int replyCount;
 
 	@Builder.Default
 	private Integer viewCount = 0;
@@ -51,6 +53,8 @@ public class BoardDTO {
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime dtdDate;
+
+	
 
 	
 

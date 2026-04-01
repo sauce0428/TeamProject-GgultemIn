@@ -155,3 +155,5 @@ public class Member extends BaseTimeEntity {
 	
 
 }
+
+
