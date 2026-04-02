@@ -25,31 +25,30 @@ public class ProcessedReportController {
 
     private final ProcessedReportService processedService;
 
-	@PostMapping("/process")
-	public Map<String, Long> process(@RequestBody ProcessedReportDTO dto) {
-		Long processedId = processedService.process(dto);
-		return Map.of("PROCESSED_ID", processedId);
-	}
-	
-	// ProcessedReportController.java에 추가
-	@GetMapping("/list")
-	public PageResponseDTO<ReportDTO> list(
-	    @RequestParam(defaultValue = "1") int page,
-	    @RequestParam(defaultValue = "10") int size) {
-	    PageRequestDTO pageRequestDTO = PageRequestDTO.builder()
-	            .page(page)
-	            .size(size)
-	            .build();
-	    return processedService.list(pageRequestDTO);
-	}
+    @PostMapping("/process")
+    public Map<String, Long> process(@RequestBody ProcessedReportDTO dto) {
+        Long processedId = processedService.process(dto);
+        return Map.of("PROCESSED_ID", processedId);
+    }
 
-	@GetMapping("/{reportId}")
-	public ReportDTO getOne(@PathVariable Long reportId) {
-	    return processedService.getOne(reportId);
-	}
-	
-	@GetMapping("/processed/{reportId}")
-	public ProcessedReportDTO getOneProcessed(@PathVariable Long reportId) {
-		return processedService.getOneProcessed(reportId);
-	}
+    @GetMapping("/list")
+    public PageResponseDTO<ReportDTO> list(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size) {
+        PageRequestDTO pageRequestDTO = PageRequestDTO.builder()
+                .page(page)
+                .size(size)
+                .build();
+        return processedService.list(pageRequestDTO);
+    }
+
+    @GetMapping("/{reportId}")
+    public ReportDTO getOne(@PathVariable Long reportId) {
+        return processedService.getOne(reportId);
+    }
+
+    @GetMapping("/processed/{reportId}")
+    public ProcessedReportDTO getOneProcessed(@PathVariable Long reportId) {
+        return processedService.getOneProcessed(reportId);
+    }
 }

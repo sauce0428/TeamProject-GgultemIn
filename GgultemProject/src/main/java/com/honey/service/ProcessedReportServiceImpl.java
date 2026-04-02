@@ -38,7 +38,6 @@ public class ProcessedReportServiceImpl implements ProcessedReportService {
         Report report = reportRepository.findById(dto.getReportId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고 내역입니다."));
 
-        // ✅ 피신고자가 없어도 예외 대신 경고 로그만 남기고 계속 진행
         Member targetMember = memberRepository.findById(report.getTargetMemberId())
                 .orElse(null);
 
@@ -46,11 +45,11 @@ public class ProcessedReportServiceImpl implements ProcessedReportService {
             log.warn("피신고자({})를 찾을 수 없어 정지 처리를 건너뜁니다.", report.getTargetMemberId());
         } else if (dto.getMemberStatus() != null) {
             targetMember.changeStatus(dto.getMemberStatus());
+            memberRepository.save(targetMember);
         }
-        
-        memberRepository.save(targetMember);
 
-        Member admin = Member.builder().email(dto.getAdminEmail()).build();
+        Member admin = memberRepository.findById(dto.getAdminEmail())
+                .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
 
         ProcessedReport processed = ProcessedReport.builder()
                 .report(report)
@@ -63,6 +62,7 @@ public class ProcessedReportServiceImpl implements ProcessedReportService {
         report.changeStatus(1);
         return processed.getProcessedReportId();
     }
+
     @Override
     @Transactional(readOnly = true)
     public PageResponseDTO<ReportDTO> list(PageRequestDTO pageRequestDTO) {
@@ -75,13 +75,14 @@ public class ProcessedReportServiceImpl implements ProcessedReportService {
         List<ReportDTO> dtoList = result.getContent().stream()
                 .map(report -> ReportDTO.builder()
                         .reportId(report.getReportId())
+                        .memberEmail(report.getReporter().getEmail())
                         .targetMemberId(report.getTargetMemberId())
                         .targetType(report.getTargetType())
                         .reportType(report.getReportType())
                         .reason(report.getReason())
                         .status(report.getStatus())
                         .targetNo(report.getTargetNo())
-                        .regDate(report.getRegDate()) // BaseTimeEntity 필드명 확인
+                        .regDate(report.getRegDate())
                         .build())
                 .collect(Collectors.toList());
         return PageResponseDTO.<ReportDTO>withAll()
@@ -98,21 +99,22 @@ public class ProcessedReportServiceImpl implements ProcessedReportService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고입니다."));
         return ReportDTO.builder()
                 .reportId(report.getReportId())
+                .memberEmail(report.getReporter().getEmail())
                 .targetMemberId(report.getTargetMemberId())
                 .targetType(report.getTargetType())
                 .reportType(report.getReportType())
                 .reason(report.getReason())
                 .status(report.getStatus())
                 .targetNo(report.getTargetNo())
-                .regDate(report.getRegDate()) // BaseTimeEntity 필드명 확인
+                .regDate(report.getRegDate())
                 .build();
     }
+
     @Override
     @Transactional(readOnly = true)
     public ProcessedReportDTO getOneProcessed(Long reportId) {
         ProcessedReport processed = processedRepository.findByReport_ReportId(reportId)
                 .orElseThrow(() -> new IllegalArgumentException("처리 내역이 존재하지 않습니다."));
-
         return ProcessedReportDTO.builder()
                 .reportId(processed.getReport().getReportId())
                 .adminEmail(processed.getAdmin().getEmail())
