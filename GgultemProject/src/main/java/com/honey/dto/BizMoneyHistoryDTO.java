@@ -25,6 +25,8 @@ public class BizMoneyHistoryDTO {
 
     private String detail; // 상세 내용 (예: "상품 광고 클릭 지출", "카카오페이 충전")
     
+    private Long total;
+    
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime regDate;
 	

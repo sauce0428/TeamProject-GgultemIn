@@ -1,6 +1,7 @@
 package com.honey.service;
 
 import java.net.URI;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ import com.honey.domain.BizMoneyHistory;
 import com.honey.domain.Member;
 import com.honey.dto.BizMoneyHistoryDTO;
 import com.honey.dto.BusinessMemberDTO;
+import com.honey.dto.MemberBizMoneySummary;
 import com.honey.dto.MemberDTO;
 import com.honey.dto.PageResponseDTO;
 import com.honey.dto.SearchDTO;
@@ -54,6 +56,9 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 	
 	@Value("${com.honey.business.api.key}")
 	private String businessKey;
+	
+	@Value("${com.honey.business.api.toss.key}")
+	private String tossKey;
 	
 	@Override
 	public MemberDTO get(String email) {
@@ -243,6 +248,43 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 	    bizMoneyHistoryRepository.save(history);
 	}
 	
+	@Override
+	@Transactional
+	public void confirmPayment(String paymentKey, String orderId, String email, Long amount) {
+	    // 1. 토스 승인 API 호출을 위한 설정
+	    RestTemplate restTemplate = new RestTemplate();
+	    HttpHeaders headers = new HttpHeaders();
+	    
+	    String secretKey = "test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6:"; 
+	    String encodedAuth = Base64.getEncoder().encodeToString(secretKey.getBytes());
+	    headers.set("Authorization", "Basic " + encodedAuth);
+	    headers.setContentType(MediaType.APPLICATION_JSON);
+
+	    Map<String, Object> params = new HashMap<>();
+	    params.put("paymentKey", paymentKey);
+	    params.put("orderId", orderId);
+	    params.put("amount", amount);
+
+	    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(params, headers);
+
+	    try {
+	        String url = "https://api.tosspayments.com/v1/payments/confirm";
+	        // 🚩 응답 결과를 받아서 확인해야 합니다.
+	        ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+	        
+	        if (response.getStatusCode().is2xxSuccessful()) {
+	            log.info("토스 결제 승인 성공!");
+	            this.chargeMoney(email, amount); 
+	        } else {
+	            throw new RuntimeException("토스 승인 응답 실패: " + response.getStatusCode());
+	        }
+
+	    } catch (Exception e) {
+	        log.error("토스 결제 승인 최종 실패: " + e.getMessage());
+	        throw new RuntimeException("결제 승인 중 오류 발생: " + e.getMessage());
+	    }
+	}
+	
 	//비즈니스 회원 광고 상품 클릭당비용(CPC) 과금 로직 ================
 	@Transactional
 	public void spendMoneyByClick(String email, Long cpcAmount, String productName) {
@@ -329,7 +371,7 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 	@Override
 	public PageResponseDTO<BizMoneyHistoryDTO> getBizMoneyHistoryAdmin(SearchDTO searchDTO) {
 		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(),
-				Sort.by("regDate").descending());
+				Sort.by("member.email").descending());
 		
 		Page<BizMoneyHistory> result = null;
 		if (searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
@@ -357,6 +399,46 @@ public class BusinessMemberServiceImpl implements BusinessMemberService {
 
 		return PageResponseDTO.<BizMoneyHistoryDTO>withAll().dtoList(dtoList).pageRequestDTO(searchDTO)
 				.totalCount(result.getTotalElements()).build();
+	}
+	
+	// 3. ✨ 통계 전용 메서드 따로 만들기
+	public  PageResponseDTO<Map<String, Object>> getBizMoneySummary(SearchDTO searchDTO) {
+		Pageable pageable = PageRequest.of(searchDTO.getPage() - 1, searchDTO.getSize(),
+				Sort.by("member.email").descending());
+		
+		Page<Object[]> result = null;
+		if (searchDTO.getKeyword() != null && !searchDTO.getKeyword().isEmpty()) {
+
+			if (searchDTO.getState() != null) {
+				result = bizMoneyHistoryRepository.searchByConditionStateFilterSummaryAdmin(searchDTO.getSearchType(), searchDTO.getKeyword(),
+						searchDTO.getState(),
+						pageable);
+			} else {
+				result = bizMoneyHistoryRepository.searchByConditionAllFilterSummaryAdmin(searchDTO.getSearchType(), searchDTO.getKeyword(),
+						pageable);
+			}
+
+		} else if (searchDTO.getState() != null) {
+			result = bizMoneyHistoryRepository.findAllBizMoneyAllFilterSummaryAdmin(pageable, searchDTO.getState());
+		} else {
+			result = bizMoneyHistoryRepository.getMemberBizMoneySummaryAdmin(pageable);
+		}
+
+		List<Map<String, Object>> dtoList = result.getContent().stream().map(row -> {
+		    // row[0] = email, row[1] = type, row[2] = total (쿼리 SELECT 순서)
+		    Map<String, Object> map = new HashMap<>();
+		    map.put("email", row[0]);
+		    map.put("type", row[1]);
+		    map.put("total", row[2]);
+		    return map;
+		}).collect(Collectors.toList());
+
+		// 리턴 타입도 PageResponseDTO<Map<String, Object>> 로 맞춰주세요!
+		return PageResponseDTO.<Map<String, Object>>withAll()
+		        .dtoList(dtoList)
+		        .pageRequestDTO(searchDTO)
+		        .totalCount(result.getTotalElements())
+		        .build();
 	}
 	
 

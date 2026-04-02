@@ -38,4 +38,6 @@ public class BizMoneyHistory extends BaseTimeEntity {
     private String type; // 거래 유형 (CHARGE: 충전, SPEND: 광고지출, REFUND: 환불)
 
     private String detail; // 상세 내용 (예: "상품 광고 클릭 지출", "카카오페이 충전")
+    
+    private Long total;
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.honey.dto.BizMoneyHistoryDTO;
 import com.honey.dto.BusinessMemberRegisterDTO;
+import com.honey.dto.MemberBizMoneySummary;
 import com.honey.dto.MemberDTO;
 import com.honey.dto.PageResponseDTO;
 import com.honey.dto.SearchDTO;
@@ -92,9 +93,17 @@ public class BusinessMemberController {
 		return businessService.list(searchDTO);
 	}
 	
-	@PutMapping("/charge/{email}")
-	public void chargeMoney(@PathVariable(name = "email") String email, Long amount) {
-		businessService.chargeMoney(email, amount);
+	@PostMapping("/admin/charge/confirm")
+	public ResponseEntity<Map<String, Object>> confirmPayment(@RequestBody Map<String, String> requestData) {
+	    // 1. 서비스에서 토스 API 호출 및 DB 업데이트 수행
+	    businessService.confirmPayment(
+	        requestData.get("paymentKey"),
+	        requestData.get("orderId"),
+	        requestData.get("email"),
+	        Long.parseLong(requestData.get("amount"))
+	    );
+	    
+	    return ResponseEntity.ok(Map.of("RESULT", "SUCCESS"));
 	}
 	
 	@GetMapping("/history/{email}")
@@ -117,6 +126,14 @@ public class BusinessMemberController {
 		}
 		
 		return businessService.getBizMoneyHistoryAdmin(searchDTO);	
+	}
+	
+	@GetMapping("/admin/totalhistory")
+	public  PageResponseDTO<Map<String, Object>> getBizMoneySummary(SearchDTO searchDTO) {
+		if (searchDTO.getKeyword() == null) searchDTO.setKeyword("");
+		if ("all".equals(searchDTO.getSearchType())) searchDTO.setSearchType("email");
+	    if ("all".equals(searchDTO.getState())) searchDTO.setState(null);
+	    return businessService.getBizMoneySummary(searchDTO);
 	}
 	
 	@PutMapping("/spend/{email}")

@@ -1,9 +1,11 @@
 package com.honey.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.honey.dto.BizMoneyHistoryDTO;
 import com.honey.dto.BusinessMemberDTO;
+import com.honey.dto.MemberBizMoneySummary;
 import com.honey.dto.MemberDTO;
 import com.honey.dto.PageResponseDTO;
 import com.honey.dto.SearchDTO;
@@ -39,5 +41,9 @@ public interface BusinessMemberService {
 	Integer getTodayViewCount(String email);
 
 	public PageResponseDTO<BizMoneyHistoryDTO> getBizMoneyHistoryAdmin(SearchDTO searchDTO);
+	
+	public PageResponseDTO<Map<String, Object>> getBizMoneySummary(SearchDTO searchDTO);
+
+	public void confirmPayment(String paymentKey, String orderId, String email,Long amount);
 
 }
