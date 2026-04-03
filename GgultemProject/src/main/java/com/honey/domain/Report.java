@@ -60,6 +60,8 @@ public class Report extends BaseTimeEntity {
     public static final String TYPE_REPLY = "코멘트";
     public static final String TYPE_BOARD = "게시판";
     public static final String TYPE_CHAT = "채팅";
+    public static final String TYPE_TRADE = "거래게시판";
+    
 
     @Column(length = 1500)
     private String reason; // 사유
