@@ -165,4 +165,4 @@ public class BoardReplyServiceImpl implements BoardReplyService {
 
         reply.changeEnabled(0);
     }
-}
+} 

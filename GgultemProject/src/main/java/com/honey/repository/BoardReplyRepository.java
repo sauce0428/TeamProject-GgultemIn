@@ -24,4 +24,4 @@ public interface BoardReplyRepository extends JpaRepository<BoardReply, Long> {
 	
 	// 댓글 수 카운트
 	int countByBoardAndEnabled(Board board, int enabled);
-}
+} 
