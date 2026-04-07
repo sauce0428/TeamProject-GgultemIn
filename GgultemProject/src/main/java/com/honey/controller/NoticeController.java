@@ -78,7 +78,7 @@ public class NoticeController {
 	@PutMapping("/remove/{noticeId}")
 	public Map<String, String> remove(@PathVariable(name = "noticeId") Long noticeId){
 		service.remove(noticeId);
-		return Map.of("RESULT", "SUCESS");
+		return Map.of("RESULT", "SUCCESS");
 	}
 	
 	
