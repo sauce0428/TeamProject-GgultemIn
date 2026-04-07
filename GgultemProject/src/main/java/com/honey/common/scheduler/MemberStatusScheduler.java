@@ -12,9 +12,11 @@ import com.honey.repository.MemberRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class MemberStatusScheduler {
 
     private final MemberRepository memberRepository;
@@ -23,6 +25,7 @@ public class MemberStatusScheduler {
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void autoReleaseMemberStatus() {
+    	log.info("정지된 회원을 찾습니다.");
         LocalDateTime now = LocalDateTime.now();
 
         // 1. 정지 종료일(stopEndDate)이 지금보다 이전인데, 아직 정지 중(2, 3)인 사람들을 찾음

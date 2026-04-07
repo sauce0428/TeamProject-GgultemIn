@@ -104,6 +104,7 @@ public class MemberController {
 	@GetMapping("/checkEmail")
 	public Map<String, Boolean> checkEmail(@RequestParam("email") String email) {
 	    boolean isAvailable = !service.existsByEmail(email); 
+	    log.info(isAvailable);
 	    return Map.of("result", isAvailable);
 	}
 	
