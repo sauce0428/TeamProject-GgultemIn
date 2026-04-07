@@ -26,4 +26,9 @@ public class ChatRoomDTO {
 	private LocalDateTime updDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime dtdDate;
+	
+	// ✨ 추가해야 할 필드
+    private String lastMessage;     // 마지막 대화 내용
+    private LocalDateTime lastSendTime; // 마지막 대화 시간
+    private Long unReadCount;      // 내가 안 읽은 메시지 개수
 }

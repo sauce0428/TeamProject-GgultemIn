@@ -1,14 +1,15 @@
 package com.honey.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.honey.domain.ChatMessages;
 import com.honey.domain.ChatRoom;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
@@ -27,5 +28,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	
 	@Query("SELECT c FROM ChatRoom c WHERE c.buyerId = :buyerId AND c.sellerId = :sellerId AND c.itemId = :itemId")
 	Optional<ChatRoom> findByBuyerIdAndSellerIdAndItemId(String buyerId, String sellerId, Long itemId);
+	
+	
+
+ // ✅ 내가 참여 중(판매자 OR 구매자)이고, 삭제되지 않은(enabled=1) 채팅방 조회
+    @Query("SELECT r FROM ChatRoom r " +
+           "WHERE (r.sellerId = :userId OR r.buyerId = :userId) " +
+           "AND r.enabled = 1 " +
+           "ORDER BY r.regDate DESC") // 기본적으로 생성일 순 정렬 (나중에 메시지 순으로 재정렬)
+    List<ChatRoom> findActiveRoomsByUserId(@Param("userId") String userId);
 
 }

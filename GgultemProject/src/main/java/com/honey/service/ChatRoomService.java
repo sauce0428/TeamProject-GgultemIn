@@ -1,5 +1,7 @@
 package com.honey.service;
 
+import java.util.List;
+
 import com.honey.dto.ChatRoomDTO;
 import com.honey.dto.PageRequestDTO;
 import com.honey.dto.PageResponseDTO;
@@ -16,6 +18,10 @@ public interface ChatRoomService {
 	public void modify(ChatRoomDTO chatRoomDTO);
 
 	public void remove(Long roomId);
+
+	public void markAsRead(Long roomId, String userId);
+
+	public List<ChatRoomDTO> getMyChatRooms(String userId);
 	
 	
 }

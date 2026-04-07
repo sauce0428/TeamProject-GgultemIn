@@ -12,6 +12,7 @@ import com.honey.dto.ChatMessageDTO;
 import com.honey.repository.ChatMessageRepository;
 import com.honey.repository.ChatRoomRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -61,5 +62,12 @@ public class ChatMessageServiceImpl implements ChatMessageService{
 	        
 	        return dto;
 	    }).collect(Collectors.toList());
+	}
+	
+	@Transactional
+	public void markAsRead(Long roomId, String userId) {
+	    // 상대방이 보낸 메시지 중 이 방의 안 읽은 메시지를 모두 읽음(1) 처리
+	    // UPDATE chatmessages SET isRead = 1 WHERE roomId = :roomId AND senderId != :userId
+		chatMessagesRepository.updateReadStatus(roomId, userId);
 	}
 }
