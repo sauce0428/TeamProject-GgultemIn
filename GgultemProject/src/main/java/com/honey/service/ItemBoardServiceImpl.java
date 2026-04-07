@@ -160,11 +160,11 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 			String status = itemBoardDTO.getStatus().trim();
 			itemBoard.changeStatus(status);
 
-			if ("판매완료".equals(status)) {
-				itemBoard.changeEnabled(2);
-			} else if ("판매중".equals(status)) {
-				itemBoard.changeEnabled(1);
-			}
+			if ("판매완료".equals(status) || "true".equalsIgnoreCase(status)) {
+		        itemBoard.changeEnabled(2);
+		    } else if ("판매중".equals(status) || "false".equalsIgnoreCase(status)) {
+		        itemBoard.changeEnabled(1);
+		    }
 		}
 
 		itemBoardRepository.save(itemBoard);
